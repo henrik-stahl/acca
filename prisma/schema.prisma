@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String    @id @default(cuid())
+  name                 String?
+  email                String?   @unique
+  emailVerified        DateTime?
+  image                String?
+  role                 String    @default("Admin")
+  phone                String?
+  notifyNewSubmissions Boolean   @default(true)
+  accounts             Account[]
+  sessions             Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  contactId String   @unique
+  createdAt DateTime @default(now())
+
+  firstName String
+  lastName  String
+  email     String
+  company   String?
+  role      String?
+  workPhone String?
+  cellPhone String?
+  comments  String   @default("[]") // JSON array of { author, timestamp, text }
+  team      String   @default("[]") // JSON array of team strings
+
+  submissionsAsApplicant  Submission[] @relation("Applicant")
+  submissionsAsAccredited Submission[] @relation("Accredited")
+}
+
+model Event {
+  id               String   @id @default(cuid())
+  eventId          String   @unique
+  createdAt        DateTime @default(now())
+
+  eventName        String
+  eventDate        DateTime
+  competition      String
+  arena            String?
+  pressSeatsCapacity  Int?
+  photoPitCapacity    Int?
+  cmsEventId       String?  @unique
+
+  submissions      Submission[]
+}
+
+model Submission {
+  id           String   @id @default(cuid())
+  submissionId String   @unique
+  createdAt    DateTime @default(now())
+
+  eventId      String
+  event        Event   @relation(fields: [eventId], references: [id])
+
+  applicantId  String
+  applicant    Contact @relation("Applicant", fields: [applicantId], references: [id])
+
+  accreditedId String
+  accredited   Contact @relation("Accredited", fields: [accreditedId], references: [id])
+
+  company      String?
+  phone        String?
+  category     String  // Press, Foto, Radio, TV, Webb, Annat
+  assignedSeat String? // Press seat, Photo pit
+  accreditationType String? // Media, Flash, Mixed zone, Fri passage, Foto, TV, Bortalag, Klubbmedia
+  pressCard    String? // AIPS-kort, Annat presskort, Kort saknas
+  otherNotes   String?
+
+  attended            Boolean  @default(false)
+
+  status              String   @default("Pending") // Pending, Approved, Rejected, Info requested
+  infoRequestMessage  String?
+  statusUpdatedAt     DateTime?
+  emailSentTo         String   @default("[]") // JSON array of email strings
+}
