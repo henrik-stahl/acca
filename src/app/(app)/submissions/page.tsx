@@ -201,7 +201,7 @@ export default function SubmissionsPage() {
             )}
           </h1>
           <Button size="sm" variant="approve" onClick={() => setAddModal(true)}>
-            <Plus size={14} /> Add new submission
+            <Plus size={14} /> Add submission
           </Button>
         </div>
         {pending.length === 0 ? (
@@ -224,9 +224,9 @@ export default function SubmissionsPage() {
       </div>
 
       {/* ── All submissions ── */}
-      <div className="bg-white rounded-2xl shadow-sm">
+      <div className="bg-white rounded-2xl shadow-sm pb-6">
         {/* Title row */}
-        <div className="flex items-center justify-between px-6 pt-4 pb-3 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 pt-6 pb-6 flex-shrink-0">
           <h2 className="text-xl font-bold text-gray-900">
             All submissions
             <span className="ml-2 text-sm font-normal text-gray-400">{sorted.length}</span>
@@ -298,7 +298,7 @@ export default function SubmissionsPage() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto pb-2">
+        <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead className="sticky top-0 bg-gray-50 border-b border-gray-100 z-10">
               <tr>

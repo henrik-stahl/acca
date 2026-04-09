@@ -5,7 +5,7 @@ import { ExternalLink, Plus } from "lucide-react";
 import Drawer, { DrawerRow } from "@/components/ui/Drawer";
 import Button from "@/components/ui/Button";
 import { formatDate } from "@/lib/utils";
-import type { ContactWithCounts } from "@/app/contacts/page";
+import type { ContactWithCounts } from "@/app/(app)/contacts/page";
 
 const TEAM_OPTIONS = ["Men's team", "Women's team", "Samhällsmatchen", "VIP", "Other"] as const;
 type TeamOption = typeof TEAM_OPTIONS[number];
