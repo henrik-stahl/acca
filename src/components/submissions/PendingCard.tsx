@@ -4,7 +4,7 @@ import { Check, X, Info, Trash2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { CATEGORY_ICONS, CATEGORY_COLORS, STATUS_COLORS, formatDate } from "@/lib/utils";
-import type { SubmissionWithRelations } from "@/app/submissions/page";
+import type { SubmissionWithRelations } from "@/app/(app)/submissions/page";
 
 interface Props {
   submission: SubmissionWithRelations;

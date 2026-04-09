@@ -14,7 +14,7 @@ import {
   getCompetitionImage,
   cn,
 } from "@/lib/utils";
-import type { SubmissionWithRelations } from "@/app/submissions/page";
+import type { SubmissionWithRelations } from "@/app/(app)/submissions/page";
 import type { Event, Contact } from "@prisma/client";
 
 interface Props {
