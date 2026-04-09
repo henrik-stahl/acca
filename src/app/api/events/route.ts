@@ -7,7 +7,7 @@ export async function GET() {
     orderBy: { eventDate: "asc" },
     include: {
       _count: { select: { submissions: true } },
-      submissions: { select: { status: true, category: true, assignedSeat: true } },
+      submissions: { select: { status: true, category: true, assignedSeat: true, attended: true } },
     },
   });
   return NextResponse.json(events);

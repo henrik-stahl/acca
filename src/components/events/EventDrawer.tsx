@@ -6,7 +6,7 @@ import Drawer, { DrawerRow } from "@/components/ui/Drawer";
 import Button from "@/components/ui/Button";
 import { FileSpreadsheet } from "lucide-react";
 import { formatDate, getCompetitionColor, getCompetitionImage, getCapacityBadgeColor, COMPETITIONS } from "@/lib/utils";
-import type { EventWithSubmissions } from "@/app/events/page";
+import type { EventWithSubmissions } from "@/app/(app)/events/page";
 
 interface Props {
   event: EventWithSubmissions | null;

@@ -2,7 +2,7 @@
 
 import { Check, X, Clock, Mail, AlertTriangle, Trash2 } from "lucide-react";
 import { formatDate, getCompetitionColor, getCompetitionImage, getCapacityTextColor } from "@/lib/utils";
-import type { EventWithSubmissions } from "@/app/events/page";
+import type { EventWithSubmissions } from "@/app/(app)/events/page";
 
 interface Props {
   event: EventWithSubmissions;

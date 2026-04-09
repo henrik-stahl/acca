@@ -12,6 +12,7 @@ const config: Config = {
       fontFamily: {
         fg: ["Franklin Gothic", "sans-serif"],
         "fg-cmpr": ["Franklin Gothic Cmpr", "sans-serif"],
+        "fg-book-cmpr": ["ITC Franklin Gothic Book Compressed", "Franklin Gothic Book Cmpr", "Franklin Gothic Cmpr", "sans-serif"],
       },
       colors: {
         sage: {

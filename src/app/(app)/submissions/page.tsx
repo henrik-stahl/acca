@@ -180,7 +180,7 @@ export default function SubmissionsPage() {
   }
 
   const selectClass = "text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-gray-300 bg-white";
-  const thClass = "px-3 py-2 text-left text-xs font-fg-cmpr uppercase tracking-wide text-gray-500 whitespace-nowrap select-none cursor-pointer hover:text-gray-800";
+  const thClass = "px-3 py-2 text-left text-xs font-fg-book-cmpr uppercase tracking-wide text-gray-500 whitespace-nowrap select-none cursor-pointer hover:text-gray-800";
 
   const selected = submissions.find((s) => s.id === selectedId) ?? null;
 
@@ -298,7 +298,7 @@ export default function SubmissionsPage() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto pb-2">
           <table className="w-full text-sm border-collapse">
             <thead className="sticky top-0 bg-gray-50 border-b border-gray-100 z-10">
               <tr>
