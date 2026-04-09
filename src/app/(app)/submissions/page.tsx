@@ -200,7 +200,7 @@ export default function SubmissionsPage() {
               <span className="ml-2 text-sm font-normal text-gray-400">{pending.length}</span>
             )}
           </h1>
-          <Button size="sm" variant="approve" onClick={() => setAddModal(true)}>
+          <Button size="sm" variant="primary" onClick={() => setAddModal(true)}>
             <Plus size={14} /> Add submission
           </Button>
         </div>
