@@ -101,6 +101,7 @@ export const COMPETITIONS = [
   "Svenska Cupen",
   "UEFA Women's Europa Cup",
   "Träningsmatch",
+  "Other",
 ] as const;
 
 export type Competition = (typeof COMPETITIONS)[number];
