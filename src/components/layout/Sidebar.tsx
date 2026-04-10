@@ -8,6 +8,7 @@ import {
   ListChecks,
   CalendarDays,
   BookUser,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,7 @@ const navItems = [
   { href: "/submissions", label: "Submissions", icon: ListChecks },
   { href: "/events", label: "Events", icon: CalendarDays },
   { href: "/contacts", label: "Contacts", icon: BookUser },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export default function Sidebar() {
