@@ -4,10 +4,11 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import nodemailer from "nodemailer";
 import { prisma } from "@/lib/prisma";
 
+const emailPort = Number(process.env.EMAIL_PORT ?? 587);
 const transport = nodemailer.createTransport({
   host: process.env.EMAIL_HOST ?? "smtp.gmail.com",
-  port: Number(process.env.EMAIL_PORT ?? 587),
-  secure: false,
+  port: emailPort,
+  secure: emailPort === 465,
   auth: {
     user: process.env.EMAIL_SERVER_USER,
     pass: process.env.EMAIL_SERVER_PASSWORD,
@@ -20,8 +21,8 @@ export const authOptions: NextAuthOptions = {
     EmailProvider({
       server: {
         host: process.env.EMAIL_HOST ?? "smtp.gmail.com",
-        port: Number(process.env.EMAIL_PORT ?? 587),
-        secure: false,
+        port: emailPort,
+        secure: emailPort === 465,
         auth: {
           user: process.env.EMAIL_SERVER_USER,
           pass: process.env.EMAIL_SERVER_PASSWORD,
