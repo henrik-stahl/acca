@@ -55,6 +55,13 @@ export default function SubmissionsPage() {
   // Drawer / add modal
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [addModal, setAddModal] = useState(false);
+
+  // Confirmation modals for pending card actions
+  const [approveTarget, setApproveTarget] = useState<string | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<string | null>(null);
+  const [infoTarget, setInfoTarget] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState("");
+  const [actionSaving, setActionSaving] = useState(false);
   const [addForm, setAddForm] = useState({
     eventId: "", accreditedId: "", category: "Press",
     assignedSeat: "Press seat", accreditationType: "Media", pressCard: "",
@@ -151,13 +158,40 @@ export default function SubmissionsPage() {
     URL.revokeObjectURL(url);
   }
 
-  async function handleStatusUpdate(id: string, status: string) {
+  async function handleStatusUpdate(id: string, status: string, infoMsg?: string) {
+    const body: Record<string, string> = { status };
+    if (infoMsg) body.infoRequestMessage = infoMsg;
     const res = await fetch(`/api/submissions/${id}`, {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify(body),
     });
     const updated = await res.json();
     setSubmissions((prev) => prev.map((s) => (s.id === id ? updated : s)));
+  }
+
+  async function confirmApprove() {
+    if (!approveTarget) return;
+    setActionSaving(true);
+    await handleStatusUpdate(approveTarget, "Approved");
+    setApproveTarget(null);
+    setActionSaving(false);
+  }
+
+  async function confirmReject() {
+    if (!rejectTarget) return;
+    setActionSaving(true);
+    await handleStatusUpdate(rejectTarget, "Rejected");
+    setRejectTarget(null);
+    setActionSaving(false);
+  }
+
+  async function confirmInfo() {
+    if (!infoTarget) return;
+    setActionSaving(true);
+    await handleStatusUpdate(infoTarget, "Info requested", infoMessage);
+    setInfoTarget(null);
+    setInfoMessage("");
+    setActionSaving(false);
   }
 
   async function handleDelete(id: string) {
@@ -213,9 +247,9 @@ export default function SubmissionsPage() {
                 key={s.id}
                 submission={s}
                 onClick={() => setSelectedId(s.id)}
-                onApprove={() => handleStatusUpdate(s.id, "Approved")}
-                onReject={() => handleStatusUpdate(s.id, "Rejected")}
-                onInfoNeeded={() => handleStatusUpdate(s.id, "Info requested")}
+                onApprove={() => setApproveTarget(s.id)}
+                onReject={() => setRejectTarget(s.id)}
+                onInfoNeeded={() => { setInfoTarget(s.id); setInfoMessage(""); }}
                 onDelete={() => handleDelete(s.id)}
               />
             ))}
@@ -442,6 +476,90 @@ export default function SubmissionsPage() {
                 {addSaving ? "Adding…" : "Add submission"}
               </Button>
               <Button variant="outline" size="sm" className="flex-1" onClick={() => setAddModal(false)}>Cancel</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Approve confirmation modal */}
+      {approveTarget && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/30">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Approve submission</h3>
+            <p className="text-sm text-gray-500 mb-6">Are you sure you want to approve this submission?</p>
+            <div className="flex gap-2">
+              <button
+                onClick={confirmApprove}
+                disabled={actionSaving}
+                className="flex-1 bg-green-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              >
+                {actionSaving ? "Approving…" : "Yes, approve"}
+              </button>
+              <button
+                onClick={() => setApproveTarget(null)}
+                className="flex-1 border border-gray-200 text-gray-700 text-sm font-medium py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject confirmation modal */}
+      {rejectTarget && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/30">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Reject submission</h3>
+            <p className="text-sm text-gray-500 mb-6">Are you sure you want to reject this submission?</p>
+            <div className="flex gap-2">
+              <button
+                onClick={confirmReject}
+                disabled={actionSaving}
+                className="flex-1 bg-red-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {actionSaving ? "Rejecting…" : "Yes, reject"}
+              </button>
+              <button
+                onClick={() => setRejectTarget(null)}
+                className="flex-1 border border-gray-200 text-gray-700 text-sm font-medium py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Additional info needed modal */}
+      {infoTarget && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/30">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Request additional information</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Explain what information is needed. This message will be included in the automated email sent to the applicant.
+            </p>
+            <textarea
+              value={infoMessage}
+              onChange={(e) => setInfoMessage(e.target.value)}
+              placeholder="Describe what information is needed…"
+              rows={4}
+              className="w-full text-sm border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-gray-300 resize-none"
+            />
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={confirmInfo}
+                disabled={actionSaving || !infoMessage.trim()}
+                className="flex-1 bg-gray-800 text-white text-sm font-medium py-2 rounded-lg hover:bg-gray-900 transition-colors disabled:opacity-50"
+              >
+                {actionSaving ? "Sending…" : "Send request"}
+              </button>
+              <button
+                onClick={() => { setInfoTarget(null); setInfoMessage(""); }}
+                className="flex-1 border border-gray-200 text-gray-700 text-sm font-medium py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
