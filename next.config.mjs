@@ -2,8 +2,8 @@
 const nextConfig = {
   experimental: {
     serverActions: { allowedOrigins: ["localhost:3000"] },
+    serverComponentsExternalPackages: ["@libsql/client", "@prisma/adapter-libsql", "libsql"],
   },
-  serverExternalPackages: ["@libsql/client", "@prisma/adapter-libsql", "libsql"],
 };
 
 export default nextConfig;
