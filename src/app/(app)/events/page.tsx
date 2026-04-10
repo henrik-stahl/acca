@@ -6,7 +6,7 @@ import { Plus, ChevronUp, ChevronDown, ChevronsUpDown, Download } from "lucide-r
 import Button from "@/components/ui/Button";
 import EventCard from "@/components/events/EventCard";
 import EventDrawer from "@/components/events/EventDrawer";
-import { COMPETITIONS, cn } from "@/lib/utils";
+import { COMPETITIONS, cn, formatDate } from "@/lib/utils";
 import type { Event, Submission } from "@prisma/client";
 
 export type EventWithSubmissions = Event & {
@@ -41,7 +41,7 @@ export default function EventsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [addModal, setAddModal] = useState(false);
   const [addForm, setAddForm] = useState({
-    eventName: "", eventDate: "", competition: "", arena: "",
+    eventName: "", eventDate: "", eventTime: "18:00", competition: "", arena: "",
     pressSeatsCapacity: "60", photoPitCapacity: "30",
   });
   const [addSaving, setAddSaving] = useState(false);
@@ -128,7 +128,7 @@ export default function EventsPage() {
     const headers = ["Event ID", "Event name", "Date", "Competition", "Arena", "Submissions", "Approved", "Rejected", "Unanswered", "Attendees", "Press seats", "Photo pit"];
     const rows = sortedPast.map((e) => [
       e.eventId, e.eventName,
-      new Date(e.eventDate).toLocaleDateString("sv-SE"),
+      formatDate(e.eventDate, true),
       e.competition, e.arena ?? "",
       e.total, e.approved, e.rejected, e.unanswered, e.attendedCount,
       e.pressSeatsCapacity ?? "", e.photoPitCapacity ?? "",
@@ -143,15 +143,17 @@ export default function EventsPage() {
 
   async function handleAdd() {
     setAddSaving(true);
+    const { eventTime, ...rest } = addForm;
+    const eventDate = new Date(`${rest.eventDate}T${eventTime}`).toISOString();
     const res = await fetch("/api/events", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(addForm),
+      body: JSON.stringify({ ...rest, eventDate }),
     });
     const created = await res.json();
     setEvents((prev) => [...prev, { ...created, submissions: [], _count: { submissions: 0 } }]);
     setAddModal(false);
     setAddSaving(false);
-    setAddForm({ eventName: "", eventDate: "", competition: "", arena: "", pressSeatsCapacity: "", photoPitCapacity: "" });
+    setAddForm({ eventName: "", eventDate: "", eventTime: "18:00", competition: "", arena: "", pressSeatsCapacity: "60", photoPitCapacity: "30" });
   }
 
   async function handleDelete(id: string) {
@@ -286,7 +288,7 @@ export default function EventsPage() {
                   <td className="pl-6 pr-3 py-1.5 text-xs text-gray-400 font-mono">{e.eventId}</td>
                   <td className="px-3 py-1.5 text-xs font-medium text-gray-900 whitespace-nowrap">{e.eventName}</td>
                   <td className="px-3 py-1.5 text-xs text-gray-500 whitespace-nowrap">
-                    {new Date(e.eventDate).toLocaleDateString("sv-SE")}
+                    {formatDate(e.eventDate, true)}
                   </td>
                   <td className="px-3 py-1.5 text-xs text-gray-600 whitespace-nowrap">{e.competition}</td>
                   <td className="px-3 py-1.5 text-xs text-gray-500">{e.arena ?? "—"}</td>
@@ -326,8 +328,11 @@ export default function EventsPage() {
               <input value={addForm.eventName} onChange={(e) => setAddForm((p) => ({ ...p, eventName: e.target.value }))} className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-gray-300" />
             </div>
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Date</label>
-              <input type="date" value={addForm.eventDate} onChange={(e) => setAddForm((p) => ({ ...p, eventDate: e.target.value }))} className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-gray-300" />
+              <label className="text-xs text-gray-500 mb-1 block">Date &amp; kick-off time</label>
+              <div className="grid grid-cols-2 gap-2">
+                <input type="date" value={addForm.eventDate} onChange={(e) => setAddForm((p) => ({ ...p, eventDate: e.target.value }))} className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-gray-300" />
+                <input type="time" value={addForm.eventTime} onChange={(e) => setAddForm((p) => ({ ...p, eventTime: e.target.value }))} className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-gray-300" />
+              </div>
             </div>
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Competition</label>
@@ -351,7 +356,7 @@ export default function EventsPage() {
               </div>
             </div>
             <div className="flex gap-2 pt-2">
-              <Button variant="approve" size="sm" className="flex-1" onClick={handleAdd} disabled={addSaving || !addForm.eventName || !addForm.eventDate}>
+              <Button variant="approve" size="sm" className="flex-1" onClick={handleAdd} disabled={addSaving || !addForm.eventName || !addForm.eventDate || !addForm.eventTime}>
                 {addSaving ? "Adding…" : "Add event"}
               </Button>
               <Button variant="outline" size="sm" className="flex-1" onClick={() => setAddModal(false)}>Cancel</Button>
