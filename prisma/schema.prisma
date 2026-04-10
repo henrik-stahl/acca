@@ -13,9 +13,12 @@ model User {
   email                String?   @unique
   emailVerified        DateTime?
   image                String?
-  role                 String    @default("Admin")
+  role                 String    @default("User")
+  status               String    @default("active") // "active" | "invited" | "inactive"
   phone                String?
   notifyNewSubmissions Boolean   @default(true)
+  invitedBy            String?   // email of the admin who sent the invitation
+  invitedAt            DateTime?
   accounts             Account[]
   sessions             Session[]
 }

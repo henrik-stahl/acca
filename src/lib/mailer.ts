@@ -19,6 +19,60 @@ interface SubmissionNotificationData {
   submissionId: string;
 }
 
+export async function sendInvitationEmail(
+  email: string,
+  invitedByName: string
+) {
+  const appUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
+  const loginUrl = `${appUrl}/login`;
+
+  await transport.sendMail({
+    from: `Acca <${process.env.EMAIL_FROM}>`,
+    to: email,
+    subject: "You've been invited to Acca",
+    text: [
+      `Hi,`,
+      ``,
+      `${invitedByName} has invited you to Acca — Hammarby Fotboll's press accreditation system.`,
+      ``,
+      `To get started, visit the link below and enter your email address to receive a sign-in link:`,
+      ``,
+      loginUrl,
+      ``,
+      `If you weren't expecting this invitation, you can safely ignore this email.`,
+    ].join("\n"),
+    html: `
+      <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:480px;margin:0 auto;padding:32px 16px;background:#ffffff;">
+        <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+          <tr>
+            <td style="vertical-align:middle;padding-right:12px;">
+              <img src="${appUrl}/acca_logo.png" alt="Acca" style="height:40px;width:auto;display:block;" />
+            </td>
+            <td style="vertical-align:middle;padding-right:12px;">
+              <div style="width:1px;height:32px;background:#e5e7eb;"></div>
+            </td>
+            <td style="vertical-align:middle;">
+              <img src="${appUrl}/hif-logo.png" alt="Hammarby IF" style="height:40px;width:auto;display:block;" />
+            </td>
+          </tr>
+        </table>
+        <h2 style="color:#111827;font-size:22px;font-weight:700;margin:0 0 8px;">You've been invited to Acca</h2>
+        <p style="color:#6b7280;font-size:15px;margin:0 0 24px;line-height:1.5;">
+          <strong>${invitedByName}</strong> has invited you to Acca — Hammarby Fotboll's press accreditation system.
+          Click the button below to get started.
+        </p>
+        <a href="${loginUrl}"
+          style="display:inline-block;background:#1b2e1e;color:#ffffff;padding:13px 28px;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;">
+          Sign in to Acca
+        </a>
+        <p style="color:#9ca3af;font-size:12px;margin-top:32px;line-height:1.5;">
+          If you weren't expecting this invitation, you can safely ignore this email.
+        </p>
+      </div>
+    `,
+  });
+}
+
 export async function sendSubmissionNotification(
   to: string[],
   data: SubmissionNotificationData
