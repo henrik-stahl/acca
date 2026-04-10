@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Plus, ChevronUp, ChevronDown, ChevronsUpDown, Download } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -32,7 +32,7 @@ function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; s
     : <ChevronDown size={12} className="text-gray-600 ml-1 inline" />;
 }
 
-export default function SubmissionsPage() {
+function SubmissionsPageInner() {
   const searchParams = useSearchParams();
   const [submissions, setSubmissions] = useState<SubmissionWithRelations[]>([]);
   const [allEvents, setAllEvents] = useState<Event[]>([]);
@@ -566,4 +566,8 @@ export default function SubmissionsPage() {
       )}
     </div>
   );
+}
+
+export default function SubmissionsPage() {
+  return <Suspense><SubmissionsPageInner /></Suspense>;
 }

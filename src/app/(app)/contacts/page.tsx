@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Plus, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -26,7 +26,7 @@ function SortIcon({ sortKey, k, sortDir }: { sortKey: SortKey; k: SortKey; sortD
     : <ChevronDown size={12} className="text-gray-600 ml-1 inline" />;
 }
 
-export default function ContactsPage() {
+function ContactsPageInner() {
   const searchParams = useSearchParams();
   const [contacts, setContacts] = useState<ContactWithCounts[]>([]);
   const [loading, setLoading] = useState(true);
@@ -278,4 +278,8 @@ export default function ContactsPage() {
       )}
     </div>
   );
+}
+
+export default function ContactsPage() {
+  return <Suspense><ContactsPageInner /></Suspense>;
 }
