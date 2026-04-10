@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { Submission, Event, Contact } from "@prisma/client";
 
 type SubmissionFull = Submission & {
@@ -12,6 +12,7 @@ type SubmissionFull = Submission & {
 export default function DashboardPage() {
   const [submissions, setSubmissions] = useState<SubmissionFull[]>([]);
   const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState<"all" | string>("all");
 
   useEffect(() => {
     fetch("/api/submissions")
@@ -22,6 +23,24 @@ export default function DashboardPage() {
       });
   }, []);
 
+  // Derive available years from event dates, sorted descending
+  const years = useMemo(() => {
+    const set = new Set<number>();
+    for (const s of submissions) {
+      if (s.event?.eventDate) set.add(new Date(s.event.eventDate).getFullYear());
+    }
+    return Array.from(set).sort((a, b) => b - a);
+  }, [submissions]);
+
+  // Filter submissions by selected period
+  const filtered = useMemo(() => {
+    if (period === "all") return submissions;
+    const year = parseInt(period);
+    return submissions.filter(
+      (s) => s.event?.eventDate && new Date(s.event.eventDate).getFullYear() === year
+    );
+  }, [submissions, period]);
+
   if (loading) {
     return (
       <div className="bg-white rounded-2xl shadow-sm p-8 text-center text-gray-400">
@@ -31,14 +50,14 @@ export default function DashboardPage() {
   }
 
   // Summary counts
-  const total    = submissions.length;
-  const approved = submissions.filter((s) => s.status === "Approved").length;
-  const rejected = submissions.filter((s) => s.status === "Rejected").length;
-  const pending  = submissions.filter((s) => s.status === "Pending").length;
+  const total    = filtered.length;
+  const approved = filtered.filter((s) => s.status === "Approved").length;
+  const rejected = filtered.filter((s) => s.status === "Rejected").length;
+  const pending  = filtered.filter((s) => s.status === "Pending").length;
 
-  // Submissions leaderboard: events ranked by submission count (top 10)
+  // Submissions leaderboard: events ranked by submission count (top 15)
   const eventMap: Record<string, { name: string; count: number }> = {};
-  for (const s of submissions) {
+  for (const s of filtered) {
     const key = s.eventId;
     const name = s.event?.eventName ?? "Unknown";
     if (!eventMap[key]) eventMap[key] = { name, count: 0 };
@@ -50,7 +69,7 @@ export default function DashboardPage() {
 
   // Contact stats: approved, attended, no-shows
   const contactStats: Record<string, { name: string; approved: number; attended: number; noShow: number }> = {};
-  for (const s of submissions) {
+  for (const s of filtered) {
     const cid = s.accreditedId;
     if (!cid) continue;
     if (!contactStats[cid]) {
@@ -71,13 +90,13 @@ export default function DashboardPage() {
     }
   }
 
-  // No-show leaderboard (top 10)
+  // No-show leaderboard (top 5)
   const noShowLeaders = Object.values(contactStats)
     .filter((c) => c.noShow > 0)
     .sort((a, b) => b.noShow - a.noShow)
     .slice(0, 5);
 
-  // Attendance leaderboard (top 10)
+  // Attendance leaderboard (top 5)
   const attendanceLeaders = Object.values(contactStats)
     .filter((c) => c.attended > 0)
     .sort((a, b) => b.attended - a.attended)
@@ -86,13 +105,28 @@ export default function DashboardPage() {
   return (
     <div className="space-y-4">
 
+      {/* Period filter */}
+      <div className="flex items-center gap-3">
+        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Period</label>
+        <select
+          value={period}
+          onChange={(e) => setPeriod(e.target.value)}
+          className="text-sm border border-gray-200 rounded-xl px-3 py-1.5 outline-none focus:border-gray-400 transition-colors bg-white"
+        >
+          <option value="all">All time</option>
+          {years.map((y) => (
+            <option key={y} value={String(y)}>{y}</option>
+          ))}
+        </select>
+      </div>
+
       {/* Summary cards */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: "Total submissions", value: total,    color: "text-gray-900" },
-          { label: "Approved",          value: approved, color: "text-green-600" },
-          { label: "Rejected",          value: rejected, color: "text-red-600"   },
-          { label: "Pending",           value: pending,  color: "text-orange-500"},
+          { label: "Total submissions", value: total,    color: "text-gray-900"   },
+          { label: "Approved",          value: approved, color: "text-green-600"  },
+          { label: "Rejected",          value: rejected, color: "text-red-600"    },
+          { label: "Pending",           value: pending,  color: "text-orange-500" },
         ].map(({ label, value, color }) => (
           <div key={label} className="bg-white rounded-2xl shadow-sm p-6">
             <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">{label}</p>
