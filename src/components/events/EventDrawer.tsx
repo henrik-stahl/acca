@@ -17,8 +17,9 @@ interface Props {
 
 export default function EventDrawer({ event, onClose, onUpdate, onDelete }: Props) {
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<Partial<EventWithSubmissions> & { eventTime?: string }>({});
+  const [form, setForm] = useState<Partial<EventWithSubmissions> & { eventTime?: string; cmsEventId?: string }>({});
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   if (!event) return null;
@@ -41,17 +42,26 @@ export default function EventDrawer({ event, onClose, onUpdate, onDelete }: Prop
   async function handleSave() {
     if (!event) return;
     setSaving(true);
-    const { eventTime, ...rest } = form;
+    setSaveError(null);
+    const { eventTime, cmsEventId, ...rest } = form;
     const payload: Record<string, unknown> = { ...rest };
     if (payload.eventDate) {
       const time = eventTime ?? "00:00";
       payload.eventDate = new Date(`${payload.eventDate as string}T${time}`).toISOString();
     }
+    // Treat empty string as null so staff can clear the CMS ID
+    payload.cmsEventId = cmsEventId?.trim() || null;
     const res = await fetch(`/api/events/${event.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
+    if (res.status === 409) {
+      const data = await res.json();
+      setSaveError(data.error ?? "CMS Event ID already in use");
+      setSaving(false);
+      return;
+    }
     const updated = await res.json();
     onUpdate({ ...updated, submissions: event.submissions });
     setEditing(false);
@@ -93,6 +103,10 @@ export default function EventDrawer({ event, onClose, onUpdate, onDelete }: Prop
           </DrawerRow>
           <DrawerRow label="Competition">{event.competition}</DrawerRow>
           <DrawerRow label="Arena">{event.arena ?? "—"}</DrawerRow>
+          <DrawerRow label="CMS Event ID">{(event as any).cmsEventId ?? "—"}</DrawerRow>
+          <DrawerRow label="Last updated">
+            {(event as any).lastUpdatedAt ? formatDate((event as any).lastUpdatedAt, true) : "—"}
+          </DrawerRow>
           <DrawerRow label="Submissions">
             <span className="flex items-center gap-2">
               {event.submissions.length}
@@ -151,7 +165,9 @@ export default function EventDrawer({ event, onClose, onUpdate, onDelete }: Prop
                 arena: event.arena ?? "",
                 pressSeatsCapacity: event.pressSeatsCapacity ?? undefined,
                 photoPitCapacity: event.photoPitCapacity ?? undefined,
+                cmsEventId: (event as any).cmsEventId ?? "",
               });
+              setSaveError(null);
               setEditing(true);
             }}
           >
@@ -214,6 +230,21 @@ export default function EventDrawer({ event, onClose, onUpdate, onDelete }: Prop
                 onChange={(e) => setForm((prev) => ({ ...prev, arena: e.target.value }))}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-sage-400"
               />
+            </div>
+
+            {/* CMS Event ID */}
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">CMS Event ID <span className="text-gray-400">(optional)</span></label>
+              <input
+                type="text"
+                value={form.cmsEventId ?? ""}
+                onChange={(e) => { setForm((prev) => ({ ...prev, cmsEventId: e.target.value })); setSaveError(null); }}
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-sage-400"
+                placeholder="e.g. 12345"
+              />
+              {saveError && (
+                <p className="text-xs text-red-500 mt-1">{saveError}</p>
+              )}
             </div>
 
             {/* Capacities */}

@@ -24,11 +24,24 @@ export async function PUT(
 ) {
   const body = await req.json();
   if (body.eventDate) body.eventDate = new Date(body.eventDate);
-  const event = await prisma.event.update({
-    where: { id: params.id },
-    data: body,
-  });
-  return NextResponse.json(event);
+  // Treat empty string as null so staff can clear the CMS ID
+  if ("cmsEventId" in body && body.cmsEventId === "") body.cmsEventId = null;
+  try {
+    const event = await prisma.event.update({
+      where: { id: params.id },
+      data: body,
+    });
+    return NextResponse.json(event);
+  } catch (err: any) {
+    // Prisma unique constraint violation
+    if (err?.code === "P2002" && err?.meta?.target?.includes("cmsEventId")) {
+      return NextResponse.json(
+        { error: "CMS Event ID already in use by another event" },
+        { status: 409 }
+      );
+    }
+    throw err;
+  }
 }
 
 export async function DELETE(

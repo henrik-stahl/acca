@@ -42,7 +42,7 @@ export default function EventsPage() {
   const [addModal, setAddModal] = useState(false);
   const [addForm, setAddForm] = useState({
     eventName: "", eventDate: "", eventTime: "18:00", competition: "", arena: "",
-    pressSeatsCapacity: "60", photoPitCapacity: "30",
+    pressSeatsCapacity: "60", photoPitCapacity: "30", cmsEventId: "",
   });
   const [addSaving, setAddSaving] = useState(false);
 
@@ -143,17 +143,19 @@ export default function EventsPage() {
 
   async function handleAdd() {
     setAddSaving(true);
-    const { eventTime, ...rest } = addForm;
+    const { eventTime, cmsEventId, ...rest } = addForm;
     const eventDate = new Date(`${rest.eventDate}T${eventTime}`).toISOString();
+    const body: Record<string, unknown> = { ...rest, eventDate };
+    if (cmsEventId.trim()) body.cmsEventId = cmsEventId.trim();
     const res = await fetch("/api/events", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...rest, eventDate }),
+      body: JSON.stringify(body),
     });
     const created = await res.json();
     setEvents((prev) => [...prev, { ...created, submissions: [], _count: { submissions: 0 } }]);
     setAddModal(false);
     setAddSaving(false);
-    setAddForm({ eventName: "", eventDate: "", eventTime: "18:00", competition: "", arena: "", pressSeatsCapacity: "60", photoPitCapacity: "30" });
+    setAddForm({ eventName: "", eventDate: "", eventTime: "18:00", competition: "", arena: "", pressSeatsCapacity: "60", photoPitCapacity: "30", cmsEventId: "" });
   }
 
   async function handleDelete(id: string) {
@@ -344,6 +346,10 @@ export default function EventsPage() {
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Arena</label>
               <input value={addForm.arena} onChange={(e) => setAddForm((p) => ({ ...p, arena: e.target.value }))} className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-gray-300" />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">CMS Event ID <span className="text-gray-400">(optional)</span></label>
+              <input value={addForm.cmsEventId} onChange={(e) => setAddForm((p) => ({ ...p, cmsEventId: e.target.value }))} className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-gray-300" placeholder="e.g. 12345" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
