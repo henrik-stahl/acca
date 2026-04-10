@@ -86,9 +86,11 @@ An administrator can invite new users to Acca by email, assign them a role, and 
 - **FR-011**: Administrators MUST be able to change the role of any non-admin user.
 - **FR-012**: Administrators MUST be able to deactivate user accounts, preventing further login.
 - **FR-013**: The system MUST prevent an admin from deactivating their own account.
-- **FR-014**: The User Management page MUST display a list of all users including their name, email, role, and account status.
+- **FR-014**: User management MUST be accessible from the Settings page as a dedicated section below the user's own profile section, visible only to Admins.
+- **FR-014b**: The Team section MUST display a table of all users with their name, email, role, and account status. Role and active/inactive status MUST be editable inline directly in the table row, without opening a separate drawer or modal.
 - **FR-015**: Users MUST be able to log out, immediately ending their session.
 - **FR-017**: Sessions MUST expire automatically after 24 hours of inactivity, logging the user out and requiring re-authentication.
+- **FR-018**: The system MUST check user account status (active/inactive) on every authenticated request, not only at login. A user deactivated mid-session MUST be denied access on their next request.
 - **FR-016**: The system MUST support exactly two roles: Admin and User. Admins have full access to all features including User Management. Users have full access to all accreditation features (submissions, events, contacts) but cannot access User Management or change other users' roles.
 
 ### Key Entities
@@ -116,8 +118,12 @@ An administrator can invite new users to Acca by email, assign them a role, and 
 
 - Authentication is passwordless — users log in exclusively via magic links sent to their registered email address. No password-based login is supported.
 - Only administrators can create new user accounts; self-registration is not supported.
+- The three existing whitelisted users (henrik.stahl@hammarbyfotboll.se, david.jesperson.mora@hammarbyfotboll.se, lukas.lundberg@hammarbyfotboll.se) will be seeded directly as active Admin records in the database as part of the migration. They do not go through the invitation flow.
 - At least one admin account must exist at all times; the system will prevent the last admin from being deactivated or demoted.
 - Email delivery relies on an external email provider (e.g., SMTP or transactional email service); delivery failures are outside the scope of this feature but should surface a clear user-facing error.
 - Sessions expire after 24 hours of inactivity, at which point the user is automatically logged out and must authenticate again via magic link.
 - Profile pictures are stored server-side; the feature does not rely on any third-party avatar service.
-- Mobile responsiveness of login and profile pages is in scope; the User Management page is desktop-only for v1.
+- User management lives in the Settings page as a separate section below the profile section, not as a standalone page or separate navigation item.
+- The Settings page uses a sections layout (not tabs) — profile and team management scroll as one page.
+- Role and status changes are made inline in the user table; no drawer or modal is used for user management.
+- Mobile responsiveness of login and profile pages is in scope; the Team section of Settings is desktop-only for v1.
