@@ -1,19 +1,10 @@
 import { NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 
-const emailPort = Number(process.env.EMAIL_PORT ?? 587);
-const transport = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST ?? "smtp.gmail.com",
-  port: emailPort,
-  secure: emailPort === 465,
-  auth: {
-    user: process.env.EMAIL_SERVER_USER,
-    pass: process.env.EMAIL_SERVER_PASSWORD,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -31,7 +22,7 @@ export const authOptions: NextAuthOptions = {
       from: process.env.EMAIL_FROM,
       maxAge: 10 * 60, // Magic links expire after 10 minutes
       sendVerificationRequest: async ({ identifier: email, url, provider }) => {
-        await transport.sendMail({
+        await resend.emails.send({
           to: email,
           from: `Acca <${provider.from}>`,
           subject: "Sign in to Acca",

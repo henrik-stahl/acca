@@ -1,15 +1,7 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-const emailPort = Number(process.env.EMAIL_PORT ?? 587);
-export const transport = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST ?? "smtp.gmail.com",
-  port: emailPort,
-  secure: emailPort === 465,
-  auth: {
-    user: process.env.EMAIL_SERVER_USER,
-    pass: process.env.EMAIL_SERVER_PASSWORD,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
+const EMAIL_FROM = process.env.EMAIL_FROM ?? "Acca <onboarding@resend.dev>";
 
 interface SubmissionNotificationData {
   eventName: string;
@@ -27,8 +19,8 @@ export async function sendInvitationEmail(
   const appUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
   const loginUrl = `${appUrl}/login`;
 
-  await transport.sendMail({
-    from: `Acca <${process.env.EMAIL_FROM}>`,
+  await resend.emails.send({
+    from: EMAIL_FROM,
     to: email,
     subject: "You've been invited to Acca",
     text: [
@@ -84,9 +76,9 @@ export async function sendSubmissionNotification(
   const appUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
   const submissionUrl = `${appUrl}/submissions?id=${submissionId}`;
 
-  await transport.sendMail({
-    from: `Acca <${process.env.EMAIL_FROM}>`,
-    to: to.join(", "),
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to: to,
     subject: `New submission: ${accreditedName} — ${eventName}`,
     text: [
       `New accreditation submission received.`,
