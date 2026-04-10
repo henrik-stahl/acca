@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import Link from "next/link";
 import type { Submission, Event, Contact } from "@prisma/client";
 
 type SubmissionFull = Submission & {
@@ -56,11 +57,12 @@ export default function DashboardPage() {
   const pending  = filtered.filter((s) => s.status === "Pending").length;
 
   // Submissions leaderboard: events ranked by submission count (top 15)
-  const eventMap: Record<string, { name: string; count: number }> = {};
+  const eventMap: Record<string, { name: string; eventId: string; count: number }> = {};
   for (const s of filtered) {
     const key = s.eventId;
     const name = s.event?.eventName ?? "Unknown";
-    if (!eventMap[key]) eventMap[key] = { name, count: 0 };
+    const eventId = s.event?.eventId ?? "";
+    if (!eventMap[key]) eventMap[key] = { name, eventId, count: 0 };
     eventMap[key].count++;
   }
   const submissionLeaders = Object.values(eventMap)
@@ -68,13 +70,14 @@ export default function DashboardPage() {
     .slice(0, 15);
 
   // Contact stats: approved, attended, no-shows
-  const contactStats: Record<string, { name: string; approved: number; attended: number; noShow: number }> = {};
+  const contactStats: Record<string, { name: string; contactId: string; approved: number; attended: number; noShow: number }> = {};
   for (const s of filtered) {
     const cid = s.accreditedId;
     if (!cid) continue;
     if (!contactStats[cid]) {
       contactStats[cid] = {
         name: s.accredited ? `${s.accredited.firstName} ${s.accredited.lastName}` : cid,
+        contactId: s.accredited?.contactId ?? "",
         approved: 0,
         attended: 0,
         noShow: 0,
@@ -145,11 +148,11 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-3">
               {submissionLeaders.map((e, i) => (
-                <div key={i} className="flex items-center gap-3">
+                <Link key={i} href={`/events?id=${e.eventId}`} className="flex items-center gap-3 hover:bg-gray-50 rounded-lg px-1 -mx-1 transition-colors">
                   <span className="text-xs font-bold text-gray-400 w-4">{i + 1}</span>
                   <p className="flex-1 text-sm font-medium text-gray-900 truncate">{e.name}</p>
                   <span className="text-sm font-bold text-gray-900">{e.count}</span>
-                </div>
+                </Link>
               ))}
             </div>
           )}
@@ -166,7 +169,7 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {noShowLeaders.map((c, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                  <Link key={i} href={`/contacts?id=${c.contactId}`} className="flex items-center gap-3 hover:bg-gray-50 rounded-lg px-1 -mx-1 transition-colors">
                     <span className="text-xs font-bold text-gray-400 w-4">{i + 1}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{c.name}</p>
@@ -175,7 +178,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <span className="text-sm font-bold text-red-500">{c.noShow}</span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
@@ -189,7 +192,7 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {attendanceLeaders.map((c, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                  <Link key={i} href={`/contacts?id=${c.contactId}`} className="flex items-center gap-3 hover:bg-gray-50 rounded-lg px-1 -mx-1 transition-colors">
                     <span className="text-xs font-bold text-gray-400 w-4">{i + 1}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{c.name}</p>
@@ -198,7 +201,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <span className="text-sm font-bold text-green-500">{c.attended}</span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
