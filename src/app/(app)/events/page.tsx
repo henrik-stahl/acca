@@ -165,7 +165,7 @@ export default function EventsPage() {
   }
 
   const selected = events.find((e) => e.id === selectedId) ?? null;
-  const arenas = useMemo(() => [...new Set(pastWithStats.map((e) => e.arena).filter(Boolean))] as string[], [pastWithStats]);
+  const arenas = useMemo(() => Array.from(new Set(pastWithStats.map((e) => e.arena).filter(Boolean))) as string[], [pastWithStats]);
   const hasFilters = nameFilter || competitionFilter || arenaFilter;
 
   const thClass = "px-3 py-2 text-left text-xs font-fg-book-cmpr uppercase tracking-wide text-gray-500 whitespace-nowrap select-none cursor-pointer hover:text-gray-800";

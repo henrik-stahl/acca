@@ -95,7 +95,7 @@ export async function GET(
   /* ── Row 3: date ────────────────────────────────────────────────── */
   ws.getRow(3).height = isPress ? 23.5 : 24.75;
   headerCols.forEach(c => ws.getCell(`${c}3`).fill = greenFill);
-  gh(ws.getCell("A3"), swedishDate(new Date(event.eventDate), event.arena), 16, MED, "center");
+  gh(ws.getCell("A3"), swedishDate(new Date(event.eventDate), event.arena), 16, MED, "middle");
 
   /* ── Row 4: spacer ──────────────────────────────────────────────── */
   ws.getRow(4).height = isPress ? 8.5 : 7.5;
