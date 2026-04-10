@@ -5,8 +5,8 @@ import nodemailer from "nodemailer";
 import { prisma } from "@/lib/prisma";
 
 const transport = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
+  host: process.env.EMAIL_HOST ?? "smtp.gmail.com",
+  port: Number(process.env.EMAIL_PORT ?? 587),
   secure: false,
   auth: {
     user: process.env.EMAIL_SERVER_USER,
@@ -19,8 +19,8 @@ export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
       server: {
-        host: "smtp.gmail.com",
-        port: 587,
+        host: process.env.EMAIL_HOST ?? "smtp.gmail.com",
+        port: Number(process.env.EMAIL_PORT ?? 587),
         secure: false,
         auth: {
           user: process.env.EMAIL_SERVER_USER,
