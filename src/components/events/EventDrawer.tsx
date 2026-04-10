@@ -17,7 +17,7 @@ interface Props {
 
 export default function EventDrawer({ event, onClose, onUpdate, onDelete }: Props) {
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<Partial<EventWithSubmissions>>({});
+  const [form, setForm] = useState<Partial<EventWithSubmissions> & { eventTime?: string }>({});
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -41,9 +41,12 @@ export default function EventDrawer({ event, onClose, onUpdate, onDelete }: Prop
   async function handleSave() {
     if (!event) return;
     setSaving(true);
-    const payload: Record<string, unknown> = { ...form };
-    if (payload.eventDate)
-      payload.eventDate = new Date(payload.eventDate as string).toISOString();
+    const { eventTime, ...rest } = form;
+    const payload: Record<string, unknown> = { ...rest };
+    if (payload.eventDate) {
+      const time = eventTime ?? "00:00";
+      payload.eventDate = new Date(`${payload.eventDate as string}T${time}`).toISOString();
+    }
     const res = await fetch(`/api/events/${event.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -136,8 +139,14 @@ export default function EventDrawer({ event, onClose, onUpdate, onDelete }: Prop
             size="sm"
             className="mt-4 w-full"
             onClick={() => {
+              const d = new Date(event.eventDate);
+              const pad = (n: number) => String(n).padStart(2, "0");
+              const dateStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+              const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
               setForm({
                 eventName: event.eventName,
+                eventDate: dateStr as unknown as Date,
+                eventTime: timeStr,
                 competition: event.competition,
                 arena: event.arena ?? "",
                 pressSeatsCapacity: event.pressSeatsCapacity ?? undefined,
@@ -160,6 +169,25 @@ export default function EventDrawer({ event, onClose, onUpdate, onDelete }: Prop
                 onChange={(e) => setForm((prev) => ({ ...prev, eventName: e.target.value }))}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-sage-400"
               />
+            </div>
+
+            {/* Date & time */}
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Date &amp; kick-off time</label>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="date"
+                  value={(form.eventDate as unknown as string) ?? ""}
+                  onChange={(e) => setForm((prev) => ({ ...prev, eventDate: e.target.value as unknown as Date }))}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-sage-400"
+                />
+                <input
+                  type="time"
+                  value={form.eventTime ?? ""}
+                  onChange={(e) => setForm((prev) => ({ ...prev, eventTime: e.target.value }))}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-sage-400"
+                />
+              </div>
             </div>
 
             {/* Competition */}
