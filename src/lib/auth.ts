@@ -4,8 +4,6 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -13,6 +11,7 @@ export const authOptions: NextAuthOptions = {
       from: process.env.EMAIL_FROM ?? "onboarding@resend.dev",
       maxAge: 10 * 60, // Magic links expire after 10 minutes
       sendVerificationRequest: async ({ identifier: email, url, provider }) => {
+        const resend = new Resend(process.env.RESEND_API_KEY);
         await resend.emails.send({
           to: email,
           from: `Acca <${provider.from}>`,

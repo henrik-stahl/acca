@@ -1,7 +1,10 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const EMAIL_FROM = process.env.EMAIL_FROM ?? "Acca <onboarding@resend.dev>";
+const EMAIL_FROM = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 interface SubmissionNotificationData {
   eventName: string;
@@ -19,7 +22,7 @@ export async function sendInvitationEmail(
   const appUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
   const loginUrl = `${appUrl}/login`;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: EMAIL_FROM,
     to: email,
     subject: "You've been invited to Acca",
@@ -76,7 +79,7 @@ export async function sendSubmissionNotification(
   const appUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
   const submissionUrl = `${appUrl}/submissions?id=${submissionId}`;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: EMAIL_FROM,
     to: to,
     subject: `New submission: ${accreditedName} — ${eventName}`,
