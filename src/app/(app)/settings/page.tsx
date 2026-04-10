@@ -242,7 +242,7 @@ export default function SettingsPage() {
           </Button>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors ml-auto"
+            className="flex items-center gap-1.5 text-sm text-red-400 hover:text-red-600 transition-colors ml-auto"
           >
             <LogOut size={14} />
             Sign out
