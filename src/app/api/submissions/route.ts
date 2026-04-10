@@ -84,7 +84,20 @@ export async function POST(req: NextRequest) {
     ? await prisma.event.findUnique({ where: { cmsEventId } })
     : null;
 
-  if (!event) {
+  if (event) {
+    // Event exists — update only the CMS-sourced fields so that
+    // manually managed fields (pressSeatsCapacity, photoPitCapacity) are preserved.
+    // Only overwrite a field if the submission provides a non-empty value.
+    const cmsUpdate: Record<string, unknown> = { lastUpdatedAt: new Date() };
+    if (eventName) cmsUpdate.eventName = eventName;
+    if (eventDate) cmsUpdate.eventDate = new Date(eventDate);
+    if (competition) cmsUpdate.competition = competition;
+    if (arena) cmsUpdate.arena = arena;
+    event = await prisma.event.update({
+      where: { id: event.id },
+      data: cmsUpdate,
+    });
+  } else {
     const all = await prisma.event.findMany({ select: { eventId: true } });
     const eventId = nextId("EID", all.map((e) => e.eventId));
     event = await prisma.event.create({

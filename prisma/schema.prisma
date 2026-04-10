@@ -88,6 +88,7 @@ model Event {
   pressSeatsCapacity  Int?
   photoPitCapacity    Int?
   cmsEventId       String?  @unique
+  lastUpdatedAt    DateTime?
 
   submissions      Submission[]
 }
