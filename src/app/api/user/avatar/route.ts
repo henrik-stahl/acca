@@ -28,10 +28,10 @@ export async function POST(req: NextRequest) {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
-  // Upload the new image to Vercel Blob
-  const blob = await put(`avatars/${user.id}.${ext}`, buffer, {
+  // Upload the new image to Vercel Blob.
+  // Include a timestamp in the filename to avoid any path conflicts.
+  const blob = await put(`avatars/${user.id}-${Date.now()}.${ext}`, buffer, {
     access: "public",
-    allowOverwrite: true,
   });
 
   // Delete the previous image if it was stored in Blob (https:// URL)
