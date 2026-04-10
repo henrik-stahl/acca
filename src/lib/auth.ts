@@ -10,16 +10,7 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     EmailProvider({
-      server: {
-        host: process.env.EMAIL_HOST ?? "smtp.gmail.com",
-        port: emailPort,
-        secure: emailPort === 465,
-        auth: {
-          user: process.env.EMAIL_SERVER_USER,
-          pass: process.env.EMAIL_SERVER_PASSWORD,
-        },
-      },
-      from: process.env.EMAIL_FROM,
+      from: process.env.EMAIL_FROM ?? "onboarding@resend.dev",
       maxAge: 10 * 60, // Magic links expire after 10 minutes
       sendVerificationRequest: async ({ identifier: email, url, provider }) => {
         await resend.emails.send({
