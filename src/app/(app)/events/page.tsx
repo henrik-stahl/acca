@@ -42,7 +42,7 @@ export default function EventsPage() {
   const [addModal, setAddModal] = useState(false);
   const [addForm, setAddForm] = useState({
     eventName: "", eventDate: "", competition: "", arena: "",
-    pressSeatsCapacity: "", photoPitCapacity: "",
+    pressSeatsCapacity: "60", photoPitCapacity: "30",
   });
   const [addSaving, setAddSaving] = useState(false);
 
