@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import type { Submission, Event, Contact } from "@prisma/client";
 
 type SubmissionFull = Submission & {
@@ -9,8 +8,6 @@ type SubmissionFull = Submission & {
   applicant: Contact | null;
   accredited: Contact | null;
 };
-
-const COLORS = ["#4e9d6e", "#f0a500", "#e05c5c", "#5c7de0", "#9d4e9d", "#4e9d9d", "#9d9d4e"];
 
 export default function DashboardPage() {
   const [submissions, setSubmissions] = useState<SubmissionFull[]>([]);
@@ -33,7 +30,13 @@ export default function DashboardPage() {
     );
   }
 
-  // Pie chart: submissions grouped by event
+  // Summary counts
+  const total    = submissions.length;
+  const approved = submissions.filter((s) => s.status === "Approved").length;
+  const rejected = submissions.filter((s) => s.status === "Rejected").length;
+  const pending  = submissions.filter((s) => s.status === "Pending").length;
+
+  // Submissions leaderboard: events ranked by submission count (top 10)
   const eventMap: Record<string, { name: string; count: number }> = {};
   for (const s of submissions) {
     const key = s.eventId;
@@ -41,12 +44,11 @@ export default function DashboardPage() {
     if (!eventMap[key]) eventMap[key] = { name, count: 0 };
     eventMap[key].count++;
   }
-  const pieData = Object.values(eventMap)
+  const submissionLeaders = Object.values(eventMap)
     .sort((a, b) => b.count - a.count)
-    .slice(0, 7);
-  const total = submissions.length;
+    .slice(0, 15);
 
-  // Contact no-show stats
+  // Contact stats: approved, attended, no-shows
   const contactStats: Record<string, { name: string; approved: number; attended: number; noShow: number }> = {};
   for (const s of submissions) {
     const cid = s.accreditedId;
@@ -69,89 +71,105 @@ export default function DashboardPage() {
     }
   }
 
+  // No-show leaderboard (top 10)
   const noShowLeaders = Object.values(contactStats)
     .filter((c) => c.noShow > 0)
     .sort((a, b) => b.noShow - a.noShow)
     .slice(0, 5);
 
-  const pending = submissions.filter((s) => s.status === "Pending").length;
-  const approved = submissions.filter((s) => s.status === "Approved").length;
-  const rejected = submissions.filter((s) => s.status === "Rejected").length;
+  // Attendance leaderboard (top 10)
+  const attendanceLeaders = Object.values(contactStats)
+    .filter((c) => c.attended > 0)
+    .sort((a, b) => b.attended - a.attended)
+    .slice(0, 5);
 
   return (
     <div className="space-y-4">
+
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         {[
-          { label: "Total submissions", value: total },
-          { label: "Approved", value: approved },
-          { label: "Pending", value: pending },
-        ].map(({ label, value }) => (
+          { label: "Total submissions", value: total,    color: "text-gray-900" },
+          { label: "Approved",          value: approved, color: "text-green-600" },
+          { label: "Rejected",          value: rejected, color: "text-red-600"   },
+          { label: "Pending",           value: pending,  color: "text-orange-500"},
+        ].map(({ label, value, color }) => (
           <div key={label} className="bg-white rounded-2xl shadow-sm p-6">
             <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">{label}</p>
-            <p className="text-3xl font-bold text-gray-900">{value}</p>
+            <p className={`text-3xl font-bold ${color}`}>{value}</p>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        {/* Submissions by event */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Submissions</h2>
-          {pieData.length === 0 ? (
+
+        {/* Submissions leaderboard */}
+        <div className="bg-white rounded-2xl shadow-sm p-6 h-full">
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Submissions leaderboard</h2>
+          {submissionLeaders.length === 0 ? (
             <p className="text-gray-400 text-sm">No submissions yet.</p>
           ) : (
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  dataKey="count"
-                  nameKey="name"
-                  cx="40%"
-                  cy="50%"
-                  outerRadius={100}
-                  label={({ percent }) => `${Math.round(percent * 100)}%`}
-                  labelLine={false}
-                >
-                  {pieData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(val: number) => [`${val} (${Math.round((val / total) * 100)}%)`, "Submissions"]} />
-                <Legend
-                  layout="vertical"
-                  align="right"
-                  verticalAlign="middle"
-                  formatter={(value, entry: any) =>
-                    `${value}  ${entry.payload.count} / ${Math.round((entry.payload.count / total) * 100)}%`
-                  }
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-
-        {/* No-show leaders */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">No-show leaderboard</h2>
-          {noShowLeaders.length === 0 ? (
-            <p className="text-gray-400 text-sm">No no-shows recorded yet.</p>
-          ) : (
             <div className="space-y-3">
-              {noShowLeaders.map((c, i) => (
+              {submissionLeaders.map((e, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <span className="text-xs font-bold text-gray-400 w-4">{i + 1}</span>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{c.name}</p>
-                    <p className="text-xs text-gray-400">
-                      {c.attended} attended · {c.noShow} no-show{c.noShow !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                  <span className="text-sm font-bold text-red-500">{c.noShow}</span>
+                  <p className="flex-1 text-sm font-medium text-gray-900 truncate">{e.name}</p>
+                  <span className="text-sm font-bold text-gray-900">{e.count}</span>
                 </div>
               ))}
             </div>
           )}
+        </div>
+
+        {/* Right column: No-show + Attendance leaderboards */}
+        <div className="flex flex-col gap-4">
+
+          {/* No-show leaderboard */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">No-show leaderboard</h2>
+            {noShowLeaders.length === 0 ? (
+              <p className="text-gray-400 text-sm">No no-shows recorded yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {noShowLeaders.map((c, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-gray-400 w-4">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{c.name}</p>
+                      <p className="text-xs text-gray-400">
+                        {c.attended} attended · {c.approved} approved
+                      </p>
+                    </div>
+                    <span className="text-sm font-bold text-red-500">{c.noShow}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Attendance leaderboard */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Attendance leaderboard</h2>
+            {attendanceLeaders.length === 0 ? (
+              <p className="text-gray-400 text-sm">No attendance recorded yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {attendanceLeaders.map((c, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-gray-400 w-4">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{c.name}</p>
+                      <p className="text-xs text-gray-400">
+                        {c.attended} attended · {c.approved} approved
+                      </p>
+                    </div>
+                    <span className="text-sm font-bold text-green-500">{c.attended}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
     </div>
