@@ -13,14 +13,12 @@ function createPrismaClient(): PrismaClient {
   // the standard file-based SQLite driver so no Turso account is needed.
   if (process.env.DATABASE_AUTH_TOKEN) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { createClient } = require("@libsql/client");
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { PrismaLibSQL } = require("@prisma/adapter-libsql");
-    const libsql = createClient({
+    // Prisma v6 adapter-libsql takes config directly (not a pre-created client)
+    const adapter = new PrismaLibSQL({
       url: process.env.DATABASE_URL!,
       authToken: process.env.DATABASE_AUTH_TOKEN,
     });
-    const adapter = new PrismaLibSQL(libsql);
     return new PrismaClient({ adapter });
   }
 
