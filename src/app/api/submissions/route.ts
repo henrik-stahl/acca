@@ -50,6 +50,27 @@ export async function POST(req: NextRequest) {
       include: { event: true, applicant: true, accredited: true },
     });
 
+    // Send notifications to users who have them enabled
+    try {
+      const notifyUsers = await prisma.user.findMany({
+        where: { notifyNewSubmissions: true, status: "active" },
+        select: { email: true },
+      });
+      const emails = notifyUsers.map((u) => u.email).filter(Boolean) as string[];
+      if (emails.length > 0) {
+        await sendSubmissionNotification(emails, {
+          eventName: submission.event.eventName,
+          eventDate: new Date(submission.event.eventDate).toLocaleDateString("sv-SE"),
+          accreditedName: `${submission.accredited.firstName} ${submission.accredited.lastName}`,
+          company: contact.company ?? "",
+          category,
+          submissionId: submission.submissionId,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to send submission notification:", err);
+    }
+
     return NextResponse.json(submission, { status: 201 });
   }
 
@@ -186,7 +207,7 @@ export async function POST(req: NextRequest) {
   // Send email notifications to users who have them enabled
   try {
     const notifyUsers = await prisma.user.findMany({
-      where: { notifyNewSubmissions: true },
+      where: { notifyNewSubmissions: true, status: "active" },
       select: { email: true },
     });
     const emails = notifyUsers.map((u) => u.email).filter(Boolean) as string[];
