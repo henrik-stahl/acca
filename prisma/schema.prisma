@@ -17,6 +17,7 @@ model User {
   status               String    @default("active") // "active" | "invited" | "inactive"
   phone                String?
   notifyNewSubmissions Boolean   @default(true)
+  passwordHash         String?
   invitedBy            String?   // email of the admin who sent the invitation
   invitedAt            DateTime?
   accounts             Account[]

@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Camera, LogOut, UserPlus, X } from "lucide-react";
+import { Camera, LogOut, UserPlus, X, KeyRound } from "lucide-react";
 import Button from "@/components/ui/Button";
 
 interface TeamUser {
@@ -31,6 +31,14 @@ export default function SettingsPage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Change password state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSaved, setPasswordSaved] = useState(false);
+
   // Team state
   const [teamUsers, setTeamUsers] = useState<TeamUser[]>([]);
   const [teamLoading, setTeamLoading] = useState(false);
@@ -40,9 +48,17 @@ export default function SettingsPage() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"User" | "Admin">("User");
+  const [invitePassword, setInvitePassword] = useState("");
   const [inviteSending, setInviteSending] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState(false);
+
+  // Reset password modal state
+  const [resetTarget, setResetTarget] = useState<TeamUser | null>(null);
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetSaving, setResetSaving] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetSuccess, setResetSuccess] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -101,6 +117,36 @@ export default function SettingsPage() {
     setAvatarUploading(false);
   }
 
+  async function handlePasswordChange() {
+    setPasswordError(null);
+    setPasswordSaved(false);
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Passwords don't match.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError("Password must be at least 8 characters.");
+      return;
+    }
+    setPasswordSaving(true);
+    const res = await fetch("/api/user/password", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    setPasswordSaving(false);
+    if (!res.ok) {
+      const err = await res.json();
+      setPasswordError(err.error ?? "Failed to change password.");
+      return;
+    }
+    setPasswordSaved(true);
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setTimeout(() => setPasswordSaved(false), 3000);
+  }
+
   async function handleRoleChange(id: string, role: string) {
     setTeamUsers((prev) => prev.map((u) => (u.id === id ? { ...u, role } : u)));
     const res = await fetch(`/api/users/${id}`, {
@@ -136,7 +182,7 @@ export default function SettingsPage() {
     const res = await fetch("/api/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+      body: JSON.stringify({ email: inviteEmail, role: inviteRole, password: invitePassword }),
     });
     if (!res.ok) {
       const err = await res.json();
@@ -151,7 +197,36 @@ export default function SettingsPage() {
       setInviteOpen(false);
       setInviteEmail("");
       setInviteRole("User");
+      setInvitePassword("");
       setInviteSuccess(false);
+    }, 1500);
+  }
+
+  async function handleResetPassword() {
+    setResetError(null);
+    setResetSuccess(false);
+    if (!resetTarget) return;
+    if (resetPassword.length < 8) {
+      setResetError("Password must be at least 8 characters.");
+      return;
+    }
+    setResetSaving(true);
+    const res = await fetch(`/api/users/${resetTarget.id}/password`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: resetPassword }),
+    });
+    setResetSaving(false);
+    if (!res.ok) {
+      const err = await res.json();
+      setResetError(err.error ?? "Failed to reset password.");
+      return;
+    }
+    setResetSuccess(true);
+    setTimeout(() => {
+      setResetTarget(null);
+      setResetPassword("");
+      setResetSuccess(false);
     }, 1500);
   }
 
@@ -204,7 +279,7 @@ export default function SettingsPage() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-sage-400 transition-colors"
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-400 transition-colors"
             />
           </div>
           <div>
@@ -213,7 +288,7 @@ export default function SettingsPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+46 70 123 45 67"
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-sage-400 transition-colors"
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-400 transition-colors"
             />
           </div>
         </div>
@@ -250,6 +325,56 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* Change password card */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 max-w-lg">
+        <h2 className="text-base font-bold text-gray-900 mb-4">Change password</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">Current password</label>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-400 transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">New password</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-400 transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">Confirm new password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-400 transition-colors"
+            />
+          </div>
+        </div>
+        {passwordError && (
+          <p className="text-sm text-red-500 mt-3">{passwordError}</p>
+        )}
+        <div className="mt-4">
+          <Button
+            variant="approve"
+            size="sm"
+            onClick={handlePasswordChange}
+            disabled={passwordSaving || !currentPassword || !newPassword || !confirmPassword}
+          >
+            {passwordSaving ? "Saving…" : passwordSaved ? "Password changed!" : "Change password"}
+          </Button>
+        </div>
+      </div>
+
       {/* Team card — Admin only */}
       {isAdmin && (
         <div className="bg-white rounded-2xl shadow-sm pb-6 max-w-2xl">
@@ -280,6 +405,7 @@ export default function SettingsPage() {
                     <th className="px-6 py-2.5 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Role</th>
                     <th className="px-6 py-2.5 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Status</th>
                     <th className="px-6 py-2.5 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Active</th>
+                    <th className="px-6 py-2.5 text-left text-xs font-medium text-gray-400 uppercase tracking-wide"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -339,6 +465,23 @@ export default function SettingsPage() {
                             }`} />
                           </button>
                         </td>
+                        <td className="px-6 py-3">
+                          {!isSelf && (
+                            <button
+                              onClick={() => {
+                                setResetTarget(u);
+                                setResetPassword("");
+                                setResetError(null);
+                                setResetSuccess(false);
+                              }}
+                              className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors"
+                              title="Reset password"
+                            >
+                              <KeyRound size={13} />
+                              Reset password
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
@@ -363,7 +506,8 @@ export default function SettingsPage() {
 
             {inviteSuccess ? (
               <div className="text-center py-4">
-                <p className="text-green-600 font-medium">Invitation sent!</p>
+                <p className="text-green-600 font-medium">User added!</p>
+                <p className="text-sm text-gray-500 mt-1">Share the password with them directly.</p>
               </div>
             ) : (
               <>
@@ -389,6 +533,17 @@ export default function SettingsPage() {
                       <option value="Admin">Admin</option>
                     </select>
                   </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 mb-1 block">Initial password</label>
+                    <input
+                      type="password"
+                      value={invitePassword}
+                      onChange={(e) => setInvitePassword(e.target.value)}
+                      placeholder="Min. 8 characters"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-400 transition-colors"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Share this password with the user separately.</p>
+                  </div>
                 </div>
 
                 {inviteError && (
@@ -400,12 +555,67 @@ export default function SettingsPage() {
                     variant="primary"
                     size="sm"
                     onClick={handleInvite}
-                    disabled={inviteSending || !inviteEmail.trim()}
+                    disabled={inviteSending || !inviteEmail.trim() || invitePassword.length < 8}
                     className="flex-1"
                   >
-                    {inviteSending ? "Sending…" : "Send invitation"}
+                    {inviteSending ? "Adding…" : "Add user"}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => setInviteOpen(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Reset password modal */}
+      {resetTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setResetTarget(null)} />
+          <div className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-base font-bold text-gray-900">Reset password</h3>
+              <button onClick={() => setResetTarget(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+
+            {resetSuccess ? (
+              <div className="text-center py-4">
+                <p className="text-green-600 font-medium">Password reset!</p>
+                <p className="text-sm text-gray-500 mt-1">Share the new password with {resetTarget.name ?? resetTarget.email}.</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-gray-500 mb-4">
+                  Set a new password for <strong>{resetTarget.name ?? resetTarget.email}</strong>. Share it with them directly.
+                </p>
+                <div className="mb-4">
+                  <label className="text-xs font-medium text-gray-500 mb-1 block">New password</label>
+                  <input
+                    type="password"
+                    value={resetPassword}
+                    onChange={(e) => setResetPassword(e.target.value)}
+                    placeholder="Min. 8 characters"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-400 transition-colors"
+                  />
+                </div>
+                {resetError && (
+                  <p className="text-sm text-red-500 mb-4">{resetError}</p>
+                )}
+                <div className="flex gap-2">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={handleResetPassword}
+                    disabled={resetSaving || resetPassword.length < 8}
+                    className="flex-1"
+                  >
+                    {resetSaving ? "Saving…" : "Reset password"}
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setResetTarget(null)}>
                     Cancel
                   </Button>
                 </div>

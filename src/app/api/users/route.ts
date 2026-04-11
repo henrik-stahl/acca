@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendInvitationEmail } from "@/lib/mailer";
+import bcrypt from "bcryptjs";
 
 // GET /api/users — list all users (Admin only)
 export async function GET() {
@@ -35,20 +36,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  let body: { email?: string; role?: string };
+  let body: { email?: string; role?: string; password?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { email, role } = body;
+  const { email, role, password } = body;
 
   if (!email || typeof email !== "string" || !email.includes("@")) {
     return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
   }
   if (!role || !["Admin", "User"].includes(role)) {
     return NextResponse.json({ error: "Role must be Admin or User" }, { status: 400 });
+  }
+  if (!password || password.length < 8) {
+    return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
   }
 
   // Check if email is already taken
@@ -57,6 +61,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "A user with that email already exists" }, { status: 409 });
   }
 
+  const passwordHash = await bcrypt.hash(password, 12);
   const inviterName = session.user.name ?? session.user.email ?? "An admin";
 
   const user = await prisma.user.create({
@@ -64,6 +69,7 @@ export async function POST(req: NextRequest) {
       email,
       role,
       status: "invited",
+      passwordHash,
       invitedBy: session.user.email ?? undefined,
       invitedAt: new Date(),
     },

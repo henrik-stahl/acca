@@ -21,19 +21,23 @@ export async function sendInvitationEmail(
 ) {
   const appUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
   const loginUrl = `${appUrl}/login`;
+  const isStaging = process.env.NEXT_PUBLIC_ENVIRONMENT === "staging";
+  const appName = isStaging ? "Acca Staging" : "Acca";
 
   await getResend().emails.send({
     from: EMAIL_FROM,
     to: email,
-    subject: "You've been invited to Acca",
+    subject: `You've been invited to ${appName}`,
     text: [
       `Hi,`,
       ``,
-      `${invitedByName} has invited you to Acca — Hammarby Fotboll's press accreditation system.`,
+      `${invitedByName} has invited you to ${appName} — Hammarby Fotboll's press accreditation system.`,
       ``,
-      `To get started, visit the link below and enter your email address to receive a sign-in link:`,
+      `To sign in, go to:`,
       ``,
       loginUrl,
+      ``,
+      `Use your email address and the password your admin has set for you.`,
       ``,
       `If you weren't expecting this invitation, you can safely ignore this email.`,
     ].join("\n"),
@@ -42,7 +46,7 @@ export async function sendInvitationEmail(
         <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
           <tr>
             <td style="vertical-align:middle;padding-right:12px;">
-              <img src="${appUrl}/acca_logo.png" alt="Acca" style="height:40px;width:auto;display:block;" />
+              <img src="${appUrl}/acca_logo.png" alt="${appName}" style="height:40px;width:auto;display:block;" />
             </td>
             <td style="vertical-align:middle;padding-right:12px;">
               <div style="width:1px;height:32px;background:#e5e7eb;"></div>
@@ -52,14 +56,16 @@ export async function sendInvitationEmail(
             </td>
           </tr>
         </table>
-        <h2 style="color:#111827;font-size:22px;font-weight:700;margin:0 0 8px;">You've been invited to Acca</h2>
+        <h2 style="color:#111827;font-size:22px;font-weight:700;margin:0 0 8px;">You've been invited to ${appName}</h2>
+        <p style="color:#6b7280;font-size:15px;margin:0 0 8px;line-height:1.5;">
+          <strong>${invitedByName}</strong> has invited you to ${appName} — Hammarby Fotboll's press accreditation system.
+        </p>
         <p style="color:#6b7280;font-size:15px;margin:0 0 24px;line-height:1.5;">
-          <strong>${invitedByName}</strong> has invited you to Acca — Hammarby Fotboll's press accreditation system.
-          Click the button below to get started.
+          Sign in with your email address and the password your admin has set for you.
         </p>
         <a href="${loginUrl}"
           style="display:inline-block;background:#1b2e1e;color:#ffffff;padding:13px 28px;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;">
-          Sign in to Acca
+          Sign in to ${appName}
         </a>
         <p style="color:#9ca3af;font-size:12px;margin-top:32px;line-height:1.5;">
           If you weren't expecting this invitation, you can safely ignore this email.
