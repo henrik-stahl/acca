@@ -7,6 +7,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient(): PrismaClient {
+  console.log("[prisma] DATABASE_URL set:", !!process.env.DATABASE_URL, "DATABASE_AUTH_TOKEN set:", !!process.env.DATABASE_AUTH_TOKEN);
   // When DATABASE_AUTH_TOKEN is set we are connecting to a remote Turso database
   // via the libSQL protocol. In local development (no auth token) we fall back to
   // the standard file-based SQLite driver so no Turso account is needed.
