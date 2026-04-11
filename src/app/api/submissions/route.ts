@@ -75,6 +75,14 @@ export async function POST(req: NextRequest) {
   }
 
   // ── CMS webhook submission (full form data) ────────────────────────────────
+  // Verify webhook secret
+  const webhookSecret = process.env.WEBHOOK_SECRET;
+  if (webhookSecret) {
+    const providedSecret = req.headers.get("x-webhook-secret");
+    if (providedSecret !== webhookSecret) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
   const {
     // Event fields (from CMS form)
     eventName,
