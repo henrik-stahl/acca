@@ -380,7 +380,7 @@ export default function SettingsPage() {
 
       {/* Team card — Admin only */}
       {isAdmin && (
-        <div className="bg-white rounded-2xl shadow-sm pb-6 max-w-2xl">
+        <div className="bg-white rounded-2xl shadow-sm pb-6 max-w-4xl">
           <div className="flex items-center justify-between px-6 pt-6 pb-4">
             <div>
               <h2 className="text-lg font-bold text-gray-900">Team</h2>
@@ -477,7 +477,7 @@ export default function SettingsPage() {
                                 setResetError(null);
                                 setResetSuccess(false);
                               }}
-                              className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors"
+                              className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600 transition-colors whitespace-nowrap"
                               title="Reset password"
                             >
                               <KeyRound size={13} />
