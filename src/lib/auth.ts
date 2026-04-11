@@ -18,8 +18,6 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
         });
 
-        console.log("[auth] user found:", !!dbUser, "status:", dbUser?.status, "hasHash:", !!dbUser?.passwordHash);
-
         if (!dbUser) return null;
         if (dbUser.status === "inactive") return null;
         if (!dbUser.passwordHash) return null;
@@ -28,9 +26,6 @@ export const authOptions: NextAuthOptions = {
           credentials.password,
           dbUser.passwordHash
         );
-
-        console.log("[auth] passwordValid:", passwordValid);
-
         if (!passwordValid) return null;
 
         // Transition invited → active on first sign-in
