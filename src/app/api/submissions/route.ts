@@ -83,6 +83,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
+
+  // Validate required fields
+  const required = [
+    "cmsEventId", "eventName", "eventDate", "competition",
+    "applicantFirstName", "applicantLastName", "applicantEmail",
+    "accreditedFirstName", "accreditedLastName", "accreditedEmail",
+    "category", "pressCard",
+  ];
+  const missing = required.filter((f) => !body[f]);
+  if (missing.length > 0) {
+    return NextResponse.json({ error: "Missing required fields", missing }, { status: 400 });
+  }
+
   const {
     // Event fields (from CMS form)
     eventName,
