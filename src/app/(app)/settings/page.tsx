@@ -363,6 +363,9 @@ export default function SettingsPage() {
         {passwordError && (
           <p className="text-sm text-red-500 mt-3">{passwordError}</p>
         )}
+        {passwordSaved && (
+          <p className="text-sm text-green-600 mt-3">Password changed successfully!</p>
+        )}
         <div className="mt-4">
           <Button
             variant="approve"
@@ -370,7 +373,7 @@ export default function SettingsPage() {
             onClick={handlePasswordChange}
             disabled={passwordSaving || !currentPassword || !newPassword || !confirmPassword}
           >
-            {passwordSaving ? "Saving…" : passwordSaved ? "Password changed!" : "Change password"}
+            {passwordSaving ? "Saving…" : "Change password"}
           </Button>
         </div>
       </div>
