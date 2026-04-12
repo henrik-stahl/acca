@@ -4,7 +4,7 @@ import { nextId } from "@/lib/utils";
 
 export async function GET() {
   const events = await prisma.event.findMany({
-    orderBy: { eventDate: "asc" },
+    orderBy: { eventDate: "desc" },
     include: {
       _count: { select: { submissions: true } },
       submissions: { select: { status: true, category: true, assignedSeat: true, attended: true } },

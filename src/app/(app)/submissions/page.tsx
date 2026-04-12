@@ -288,7 +288,7 @@ function SubmissionsPageInner() {
           {/* Event filter */}
           <select value={eventFilter} onChange={(e) => setEventFilter(e.target.value)} className={selectClass}>
             <option value="">All events</option>
-            {allEvents.map((ev) => <option key={ev.id} value={ev.id}>{ev.eventName}</option>)}
+            {allEvents.map((ev) => <option key={ev.id} value={ev.id}>{ev.eventName} ({new Date(ev.eventDate).toLocaleDateString("sv-SE")})</option>)}
           </select>
 
           {/* Category filter */}
@@ -421,7 +421,7 @@ function SubmissionsPageInner() {
               <label className="text-xs text-gray-500 mb-1 block">Event</label>
               <select value={addForm.eventId} onChange={(e) => setAddForm((p) => ({ ...p, eventId: e.target.value }))} className={selectClass + " w-full"}>
                 <option value="">Select event…</option>
-                {allEvents.map((ev) => <option key={ev.id} value={ev.id}>{ev.eventName}</option>)}
+                {allEvents.map((ev) => <option key={ev.id} value={ev.id}>{ev.eventName} ({new Date(ev.eventDate).toLocaleDateString("sv-SE")})</option>)}
               </select>
             </div>
             <div>
