@@ -10,7 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <StagingBanner />
       <div className={`flex gap-4 p-4 h-full${isStaging ? " pt-9" : ""}`}>
         <Sidebar />
-        <div className="flex-1 flex flex-col gap-4 min-w-0 overflow-hidden">
+        <div className="flex-1 flex flex-col gap-4 min-w-0 overflow-hidden max-w-6xl">
           <div className="bg-white rounded-2xl shadow-sm px-4 py-3 flex items-center flex-shrink-0">
             <SearchBar />
           </div>
