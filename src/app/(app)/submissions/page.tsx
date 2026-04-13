@@ -64,7 +64,7 @@ function SubmissionsPageInner() {
   const [actionSaving, setActionSaving] = useState(false);
   const [addForm, setAddForm] = useState({
     eventId: "", accreditedId: "", category: "Press",
-    assignedSeat: "Press seat", accreditationType: "Media", pressCard: "",
+    assignedSeat: "Press seat", accreditationType: "Media", pressCard: "", otherNotes: "",
   });
   const [addSaving, setAddSaving] = useState(false);
 
@@ -210,7 +210,7 @@ function SubmissionsPageInner() {
     setSubmissions((prev) => [created, ...prev]);
     setAddModal(false);
     setAddSaving(false);
-    setAddForm({ eventId: "", accreditedId: "", category: "Press", assignedSeat: "Press seat", accreditationType: "Media", pressCard: "" });
+    setAddForm({ eventId: "", accreditedId: "", category: "Press", assignedSeat: "Press seat", accreditationType: "Media", pressCard: "", otherNotes: "" });
   }
 
   const selectClass = "text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-gray-300 bg-white";
@@ -470,6 +470,16 @@ function SubmissionsPageInner() {
                 <option value="">None</option>
                 <option>AIPS-kort</option><option>Annat presskort</option><option>Kort saknas</option>
               </select>
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Other notes</label>
+              <textarea
+                value={addForm.otherNotes}
+                onChange={(e) => setAddForm((p) => ({ ...p, otherNotes: e.target.value }))}
+                placeholder="Any additional notes…"
+                rows={3}
+                className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-gray-300 resize-none"
+              />
             </div>
             <div className="flex gap-2 pt-2">
               <Button variant="approve" size="sm" className="flex-1" onClick={handleAdd} disabled={addSaving || !addForm.eventId || !addForm.accreditedId}>

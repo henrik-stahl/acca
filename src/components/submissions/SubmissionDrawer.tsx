@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ExternalLink, Check, X, Info } from "lucide-react";
+import { ExternalLink, Check, X, Info, Pencil } from "lucide-react";
 import Drawer, { DrawerRow } from "@/components/ui/Drawer";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -34,6 +34,9 @@ export default function SubmissionDrawer({
   allEvents,
   allContacts,
 }: Props) {
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesValue, setNotesValue] = useState("");
+  const [notesSaving, setNotesSaving] = useState(false);
   const [infoModal, setInfoModal] = useState(false);
   const [infoMessage, setInfoMessage] = useState("");
   const [approveModal, setApproveModal] = useState(false);
@@ -200,7 +203,56 @@ export default function SubmissionDrawer({
             <DrawerRow label="Submission date">
               {formatDate(submission.createdAt, true)}
             </DrawerRow>
-            <DrawerRow label="Other">{submission.otherNotes ?? "—"}</DrawerRow>
+            <DrawerRow label="Other">
+              {editingNotes ? (
+                <div className="flex flex-col gap-2 w-full">
+                  <textarea
+                    autoFocus
+                    value={notesValue}
+                    onChange={(e) => setNotesValue(e.target.value)}
+                    rows={3}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 transition-colors resize-none"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      variant="approve"
+                      size="sm"
+                      disabled={notesSaving}
+                      onClick={async () => {
+                        setNotesSaving(true);
+                        const res = await fetch(`/api/submissions/${submission.id}`, {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ otherNotes: notesValue }),
+                        });
+                        if (res.ok) {
+                          const updated = await res.json();
+                          onUpdate(updated);
+                        }
+                        setNotesSaving(false);
+                        setEditingNotes(false);
+                      }}
+                    >
+                      {notesSaving ? "Saving…" : "Save"}
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setEditingNotes(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start gap-2 w-full">
+                  <span className="flex-1 text-sm">{submission.otherNotes || "—"}</span>
+                  <button
+                    onClick={() => { setNotesValue(submission.otherNotes ?? ""); setEditingNotes(true); }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                    title="Edit"
+                  >
+                    <Pencil size={13} />
+                  </button>
+                </div>
+              )}
+            </DrawerRow>
             <DrawerRow label="Status">
               <Badge className={STATUS_COLORS[submission.status] ?? "bg-gray-100"}>
                 {submission.status}
