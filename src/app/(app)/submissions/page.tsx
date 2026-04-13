@@ -286,7 +286,7 @@ function SubmissionsPageInner() {
           />
 
           {/* Event filter */}
-          <select value={eventFilter} onChange={(e) => setEventFilter(e.target.value)} className={selectClass}>
+          <select value={eventFilter} onChange={(e) => setEventFilter(e.target.value)} className={selectClass + " max-w-[220px]"}>
             <option value="">All events</option>
             {allEvents.map((ev) => <option key={ev.id} value={ev.id}>{ev.eventName} ({new Date(ev.eventDate).toLocaleDateString("sv-SE")})</option>)}
           </select>
@@ -372,7 +372,7 @@ function SubmissionsPageInner() {
                     className="hover:bg-gray-50 cursor-pointer transition-colors"
                   >
                     <td className="pl-6 pr-3 py-1.5 text-xs text-gray-400 font-mono">{s.submissionId}</td>
-                    <td className="px-3 py-1.5 text-xs text-gray-700 whitespace-nowrap">{s.event?.eventName ?? "—"}</td>
+                    <td className="px-3 py-1.5 text-xs text-gray-700 max-w-[180px] truncate">{s.event?.eventName ?? "—"}</td>
                     <td className="px-3 py-1.5 text-xs text-gray-500 whitespace-nowrap">
                       {s.event?.eventDate ? new Date(s.event.eventDate).toLocaleDateString("sv-SE") : "—"}
                     </td>
