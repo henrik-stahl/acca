@@ -88,7 +88,7 @@ function ContactsPageInner() {
     });
   }, [contacts, search, teamFilter, sortKey, sortDir]);
 
-  const selected = contacts.find((c) => c.id === selectedId) ?? null;
+  const selected = contacts.find((c) => c.id === selectedId || c.contactId === selectedId) ?? null;
   const hasFilters = search || teamFilter;
 
   function handleSort(key: SortKey) {

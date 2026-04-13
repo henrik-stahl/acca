@@ -164,7 +164,7 @@ function EventsPageInner() {
     setSelectedId(null);
   }
 
-  const selected = events.find((e) => e.id === selectedId) ?? null;
+  const selected = events.find((e) => e.id === selectedId || e.eventId === selectedId) ?? null;
   const arenas = useMemo(() => Array.from(new Set(pastWithStats.map((e) => e.arena).filter(Boolean))) as string[], [pastWithStats]);
   const hasFilters = nameFilter || competitionFilter || arenaFilter;
 
