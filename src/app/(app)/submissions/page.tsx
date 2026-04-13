@@ -216,7 +216,7 @@ function SubmissionsPageInner() {
   const selectClass = "text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-gray-300 bg-white";
   const thClass = "px-3 py-2 text-left text-xs font-fg-book-cmpr uppercase tracking-wide text-gray-500 whitespace-nowrap select-none cursor-pointer hover:text-gray-800";
 
-  const selected = submissions.find((s) => s.id === selectedId) ?? null;
+  const selected = submissions.find((s) => s.id === selectedId || s.submissionId === selectedId) ?? null;
 
   const hasFilters = nameFilter || eventFilter || categoryFilter || seatFilter || accTypeFilter || pressCardFilter || statusFilter;
 
