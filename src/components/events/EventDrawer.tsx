@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Copy, Check } from "lucide-react";
 import Drawer, { DrawerRow } from "@/components/ui/Drawer";
 import Button from "@/components/ui/Button";
 import { FileSpreadsheet } from "lucide-react";
@@ -21,6 +21,7 @@ export default function EventDrawer({ event, onClose, onUpdate, onDelete }: Prop
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
 
   if (!event) return null;
 
@@ -97,7 +98,22 @@ export default function EventDrawer({ event, onClose, onUpdate, onDelete }: Prop
         </div>
 
         <div className="border-t border-gray-100 divide-y divide-gray-50">
-          <DrawerRow label="Event ID">{event.eventId}</DrawerRow>
+          <DrawerRow label="Event ID">
+            <span className="flex items-center gap-1.5">
+              {event.eventId}
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/events?id=${event.eventId}`);
+                  setCopiedId(true);
+                  setTimeout(() => setCopiedId(false), 2000);
+                }}
+                className="text-gray-300 hover:text-gray-500 transition-colors"
+                title="Copy link"
+              >
+                {copiedId ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+              </button>
+            </span>
+          </DrawerRow>
           <DrawerRow label="Event date">
             {formatDate(event.eventDate, true)}
           </DrawerRow>

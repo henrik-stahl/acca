@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ExternalLink, Check, X, Info, Pencil } from "lucide-react";
+import { ExternalLink, Check, X, Info, Pencil, Copy } from "lucide-react";
 import Drawer, { DrawerRow } from "@/components/ui/Drawer";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -37,6 +37,7 @@ export default function SubmissionDrawer({
   const [editingNotes, setEditingNotes] = useState(false);
   const [notesValue, setNotesValue] = useState("");
   const [notesSaving, setNotesSaving] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
   const [infoModal, setInfoModal] = useState(false);
   const [infoMessage, setInfoMessage] = useState("");
   const [approveModal, setApproveModal] = useState(false);
@@ -145,7 +146,22 @@ export default function SubmissionDrawer({
           </h2>
 
           <div className="border-t border-gray-100 divide-y divide-gray-50">
-            <DrawerRow label="Submission ID">{submission.submissionId}</DrawerRow>
+            <DrawerRow label="Submission ID">
+              <span className="flex items-center gap-1.5">
+                {submission.submissionId}
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/submissions?id=${submission.submissionId}`);
+                    setCopiedId(true);
+                    setTimeout(() => setCopiedId(false), 2000);
+                  }}
+                  className="text-gray-300 hover:text-gray-500 transition-colors"
+                  title="Copy link"
+                >
+                  {copiedId ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+                </button>
+              </span>
+            </DrawerRow>
             <DrawerRow label="Event">
               <Link
                 href={`/events?id=${event?.eventId}`}

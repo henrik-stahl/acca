@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink, Plus } from "lucide-react";
+import { ExternalLink, Plus, Copy, Check } from "lucide-react";
 import Drawer, { DrawerRow } from "@/components/ui/Drawer";
 import Button from "@/components/ui/Button";
 import { formatDate } from "@/lib/utils";
@@ -24,6 +24,7 @@ export default function ContactDrawer({ contact, onClose, onUpdate, onDelete }: 
   const [saving, setSaving] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
 
   if (!contact) return null;
 
@@ -98,7 +99,22 @@ export default function ContactDrawer({ contact, onClose, onUpdate, onDelete }: 
 
         {/* Details */}
         <div className="border-t border-gray-100 divide-y divide-gray-50">
-          <DrawerRow label="Contact ID">{contact.contactId}</DrawerRow>
+          <DrawerRow label="Contact ID">
+            <span className="flex items-center gap-1.5">
+              {contact.contactId}
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/contacts?id=${contact.contactId}`);
+                  setCopiedId(true);
+                  setTimeout(() => setCopiedId(false), 2000);
+                }}
+                className="text-gray-300 hover:text-gray-500 transition-colors"
+                title="Copy link"
+              >
+                {copiedId ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+              </button>
+            </span>
+          </DrawerRow>
           <DrawerRow label="Creation date">
             {formatDate(contact.createdAt, true)}
           </DrawerRow>
