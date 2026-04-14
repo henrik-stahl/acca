@@ -8,9 +8,18 @@ import { sendSubmissionNotification } from "@/lib/mailer";
 const VALID_CATEGORIES = ["Press", "Foto", "TV", "Radio", "Webb", "Annat"] as const;
 type Category = typeof VALID_CATEGORIES[number];
 
+const VALID_PRESS_CARDS = ["AIPS-kort", "Annat presskort", "Kort saknas"] as const;
+type PressCard = typeof VALID_PRESS_CARDS[number];
+
 /** Normalise incoming category to the canonical capitalised form, e.g. "webb" → "Webb". */
 function normaliseCategory(raw: string): Category | null {
   const match = VALID_CATEGORIES.find((c) => c.toLowerCase() === raw.toLowerCase());
+  return match ?? null;
+}
+
+/** Normalise incoming press card to the canonical form, e.g. "aips-kort" → "AIPS-kort". */
+function normalisePressCard(raw: string): PressCard | null {
+  const match = VALID_PRESS_CARDS.find((p) => p.toLowerCase() === raw.toLowerCase());
   return match ?? null;
 }
 
@@ -141,6 +150,13 @@ export async function POST(req: NextRequest) {
     ? `[Category not recognised: "${rawCategory}"]`
     : null;
 
+  const rawPressCard = pressCard ?? "";
+  const normalisedPressCard = rawPressCard ? normalisePressCard(rawPressCard) : null;
+  const resolvedPressCard = rawPressCard ? (normalisedPressCard ?? "Annat presskort") : null;
+  const pressCardFallbackNote = rawPressCard && normalisedPressCard === null
+    ? `[Press card not recognised: "${rawPressCard}"]`
+    : null;
+
   // --- Resolve or create Event ---
   let event = cmsEventId
     ? await prisma.event.findUnique({ where: { cmsEventId } })
@@ -237,8 +253,8 @@ export async function POST(req: NextRequest) {
       category,
       assignedSeat: ["Foto", "TV"].includes(category) ? "Photo pit" : "Press seat",
       accreditationType: category === "Foto" ? "Foto" : category === "TV" ? "TV" : "Media",
-      pressCard,
-      otherNotes: [otherNotes, categoryFallbackNote].filter(Boolean).join("\n") || null,
+      pressCard: resolvedPressCard,
+      otherNotes: [otherNotes, categoryFallbackNote, pressCardFallbackNote].filter(Boolean).join("\n") || null,
       status: "Pending",
       emailSentTo: "[]",
     },
