@@ -5,6 +5,15 @@ import { prisma } from "@/lib/prisma";
 import { nextId } from "@/lib/utils";
 import { sendSubmissionNotification } from "@/lib/mailer";
 
+const VALID_CATEGORIES = ["Press", "Foto", "TV", "Radio", "Webb", "Annat"] as const;
+type Category = typeof VALID_CATEGORIES[number];
+
+/** Normalise incoming category to the canonical capitalised form, e.g. "webb" → "Webb". */
+function normaliseCategory(raw: string): Category | null {
+  const match = VALID_CATEGORIES.find((c) => c.toLowerCase() === raw.toLowerCase());
+  return match ?? null;
+}
+
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -121,10 +130,17 @@ export async function POST(req: NextRequest) {
     accreditedCompany,
     accreditedPhone,
     // Submission fields
-    category,
     pressCard,
     otherNotes,
   } = body;
+
+  const category = normaliseCategory(body.category ?? "");
+  if (!category) {
+    return NextResponse.json(
+      { error: "Invalid category", valid: VALID_CATEGORIES },
+      { status: 400 }
+    );
+  }
 
   // --- Resolve or create Event ---
   let event = cmsEventId
