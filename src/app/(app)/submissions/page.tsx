@@ -337,7 +337,6 @@ function SubmissionsPageInner() {
             <thead className="sticky top-0 bg-gray-50 border-b border-gray-100 z-10">
               <tr>
                 {([
-                  ["submissionId", "ID"],
                   ["event", "Event"],
                   ["eventDate", "Date"],
                   ["name", "Name"],
@@ -362,7 +361,7 @@ function SubmissionsPageInner() {
             <tbody className="divide-y divide-gray-50">
               {sorted.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="text-center text-gray-400 py-12">No submissions found.</td>
+                  <td colSpan={10} className="text-center text-gray-400 py-12">No submissions found.</td>
                 </tr>
               ) : (
                 sorted.map((s) => (
@@ -371,8 +370,7 @@ function SubmissionsPageInner() {
                     onClick={() => setSelectedId(s.id)}
                     className="hover:bg-gray-50 cursor-pointer transition-colors"
                   >
-                    <td className="pl-6 pr-3 py-1.5 text-xs text-gray-400 font-mono">{s.submissionId}</td>
-                    <td className="px-3 py-1.5 text-xs text-gray-700 max-w-[180px] truncate">{s.event?.eventName ?? "—"}</td>
+                    <td className="pl-6 pr-3 py-1.5 text-xs text-gray-700 max-w-[180px] truncate">{s.event?.eventName ?? "—"}</td>
                     <td className="px-3 py-1.5 text-xs text-gray-500 whitespace-nowrap">
                       {s.event?.eventDate ? new Date(s.event.eventDate).toLocaleDateString("sv-SE") : "—"}
                     </td>

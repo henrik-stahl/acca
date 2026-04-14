@@ -253,7 +253,6 @@ function EventsPageInner() {
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
                 {([
-                  ["eventId",     "Event ID"],
                   ["eventName",   "Event name"],
                   ["eventDate",   "Date"],
                   ["competition", "Competition"],
@@ -279,7 +278,7 @@ function EventsPageInner() {
             <tbody className="divide-y divide-gray-50">
               {sortedPast.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="text-center text-gray-400 py-12">No past events.</td>
+                  <td colSpan={11} className="text-center text-gray-400 py-12">No past events.</td>
                 </tr>
               ) : sortedPast.map((e) => (
                 <tr
@@ -287,8 +286,7 @@ function EventsPageInner() {
                   onClick={() => setSelectedId(e.id)}
                   className="hover:bg-gray-50 cursor-pointer transition-colors"
                 >
-                  <td className="pl-6 pr-3 py-1.5 text-xs text-gray-400 font-mono">{e.eventId}</td>
-                  <td className="px-3 py-1.5 text-xs font-medium text-gray-900 whitespace-nowrap">{e.eventName}</td>
+                  <td className="pl-6 pr-3 py-1.5 text-xs font-medium text-gray-900 whitespace-nowrap">{e.eventName}</td>
                   <td className="px-3 py-1.5 text-xs text-gray-500 whitespace-nowrap">
                     {formatDate(e.eventDate, true)}
                   </td>
