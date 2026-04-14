@@ -134,13 +134,12 @@ export async function POST(req: NextRequest) {
     otherNotes,
   } = body;
 
-  const category = normaliseCategory(body.category ?? "");
-  if (!category) {
-    return NextResponse.json(
-      { error: "Invalid category", valid: VALID_CATEGORIES },
-      { status: 400 }
-    );
-  }
+  const rawCategory = body.category ?? "";
+  const normalisedCategory = normaliseCategory(rawCategory);
+  const category = normalisedCategory ?? "Annat";
+  const categoryFallbackNote = normalisedCategory === null
+    ? `[Category not recognised: "${rawCategory}"]`
+    : null;
 
   // --- Resolve or create Event ---
   let event = cmsEventId
@@ -239,7 +238,7 @@ export async function POST(req: NextRequest) {
       assignedSeat: ["Foto", "TV"].includes(category) ? "Photo pit" : "Press seat",
       accreditationType: category === "Foto" ? "Foto" : category === "TV" ? "TV" : "Media",
       pressCard,
-      otherNotes,
+      otherNotes: [otherNotes, categoryFallbackNote].filter(Boolean).join("\n") || null,
       status: "Pending",
       emailSentTo: "[]",
     },
