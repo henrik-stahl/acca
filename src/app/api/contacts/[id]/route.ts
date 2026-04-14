@@ -30,8 +30,33 @@ export async function PUT(
   const contact = await prisma.contact.update({
     where: { id: params.id },
     data: body,
+    include: {
+      _count: {
+        select: {
+          submissionsAsApplicant: true,
+          submissionsAsAccredited: true,
+        },
+      },
+    },
   });
-  return NextResponse.json(contact);
+
+  const now = new Date();
+  const [attendedRow] = await prisma.submission.groupBy({
+    by: ["accreditedId"],
+    where: { accreditedId: params.id, status: "Approved", attended: true },
+    _count: { id: true },
+  });
+  const [noShowRow] = await prisma.submission.groupBy({
+    by: ["accreditedId"],
+    where: { accreditedId: params.id, status: "Approved", attended: false, event: { eventDate: { lt: now } } },
+    _count: { id: true },
+  });
+
+  return NextResponse.json({
+    ...contact,
+    attendedCount: attendedRow?._count.id ?? 0,
+    noShowCount: noShowRow?._count.id ?? 0,
+  });
 }
 
 export async function DELETE(
