@@ -84,6 +84,11 @@ export async function sendSubmissionNotification(
   const { eventName, eventDate, accreditedName, company, category, submissionId } = data;
   const appUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
   const submissionUrl = `${appUrl}/submissions?id=${submissionId}`;
+  const isStaging = process.env.NEXT_PUBLIC_ENVIRONMENT === "staging";
+  const notificationTitle = isStaging ? "New submission received in Staging" : "New submission received";
+  const notificationFooter = isStaging
+    ? "You're receiving this because you have submission notifications enabled in Acca Staging. You can turn these off in your Settings page."
+    : "You're receiving this because you have submission notifications enabled in Acca. You can turn these off in your Settings page.";
 
   await getResend().emails.send({
     from: EMAIL_FROM,
@@ -101,7 +106,7 @@ export async function sendSubmissionNotification(
     ].join("\n"),
     html: `
       <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;padding:32px 16px;">
-        <h2 style="color:#111;font-size:20px;margin:0 0 4px;">New submission received</h2>
+        <h2 style="color:#111;font-size:20px;margin:0 0 4px;">${notificationTitle}</h2>
         <p style="color:#888;font-size:13px;margin:0 0 24px;">A new accreditation request has been submitted.</p>
 
         <table style="width:100%;border-collapse:collapse;font-size:14px;">
@@ -133,8 +138,7 @@ export async function sendSubmissionNotification(
         </a>
 
         <p style="color:#bbb;font-size:11px;margin-top:32px;">
-          You're receiving this because you have submission notifications enabled in Acca.
-          You can turn these off in your Settings page.
+          ${notificationFooter}
         </p>
       </div>
     `,
