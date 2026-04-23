@@ -45,9 +45,7 @@ export default function ContactDrawer({ contact, onClose, onUpdate, onDelete }: 
     }
   })();
 
-  const submissionsCount =
-    (contact._count?.submissionsAsAccredited ?? 0) +
-    (contact._count?.submissionsAsApplicant ?? 0);
+  const submissionsCount = contact._count?.submissionsAsApplicant ?? 0;
 
   async function handleSave() {
     if (!contact) return;
@@ -137,9 +135,6 @@ export default function ContactDrawer({ contact, onClose, onUpdate, onDelete }: 
                 <ExternalLink size={13} />
               </button>
             </span>
-          </DrawerRow>
-          <DrawerRow label="Attended">
-            {contact._count?.submissionsAsAccredited ?? 0}
           </DrawerRow>
           <DrawerRow label="Attended">
             {(contact as any).attendedCount ?? 0}
