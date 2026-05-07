@@ -20,10 +20,13 @@ export async function PUT(
 ) {
   const body = await req.json();
 
-  // If status is changing, set statusUpdatedAt
+  // If status is changing, set statusUpdatedAt and default attended to true when Approved
   const data: Record<string, unknown> = { ...body };
   if (body.status) {
     data.statusUpdatedAt = new Date();
+    if (body.status === "Approved") {
+      data.attended = true;
+    }
   }
 
   const submission = await prisma.submission.update({
