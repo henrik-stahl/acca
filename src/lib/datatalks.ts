@@ -129,7 +129,7 @@ export async function sendProfile(contact: Contact): Promise<void> {
 
 /** Send an Inventory payload when an Event (match) is created or updated. */
 export async function sendInventory(event: Event): Promise<void> {
-  await signedPost("/v3/events", {
+  await signedPost("/v3/inventory", {
     type: "acca_event",
     data: {
       modified_date: dtFormat(new Date()),
