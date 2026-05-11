@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendNotification } from "@/lib/datatalks";
 
 export async function GET(
   _req: NextRequest,
@@ -34,6 +35,15 @@ export async function PUT(
     data,
     include: { event: true, applicant: true, accredited: true },
   });
+
+  if (body.status) {
+    try {
+      await sendNotification(submission);
+    } catch (err) {
+      console.error("DataTalks sendNotification failed:", err);
+    }
+  }
+
   return NextResponse.json(submission);
 }
 

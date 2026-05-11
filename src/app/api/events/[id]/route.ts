@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendInventory } from "@/lib/datatalks";
 
 export async function GET(
   _req: NextRequest,
@@ -31,6 +32,12 @@ export async function PUT(
       where: { id: params.id },
       data: body,
     });
+    try {
+      await sendInventory(event);
+    } catch (err) {
+      console.error("DataTalks sendInventory failed:", err);
+    }
+
     return NextResponse.json(event);
   } catch (err: any) {
     // Prisma unique constraint violation

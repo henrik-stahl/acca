@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendProfile } from "@/lib/datatalks";
 
 export async function GET(
   _req: NextRequest,
@@ -51,6 +52,12 @@ export async function PUT(
     where: { accreditedId: params.id, status: "Approved", attended: false, event: { eventDate: { lt: now } } },
     _count: { id: true },
   });
+
+  try {
+    await sendProfile(contact);
+  } catch (err) {
+    console.error("DataTalks sendProfile failed:", err);
+  }
 
   return NextResponse.json({
     ...contact,

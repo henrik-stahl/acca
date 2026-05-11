@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { nextId } from "@/lib/utils";
+import { sendInventory } from "@/lib/datatalks";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -43,6 +44,12 @@ export async function POST(req: NextRequest) {
       cmsEventId,
     },
   });
+
+  try {
+    await sendInventory(event);
+  } catch (err) {
+    console.error("DataTalks sendInventory failed:", err);
+  }
 
   return NextResponse.json(event, { status: 201 });
 }

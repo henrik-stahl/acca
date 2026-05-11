@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { nextId } from "@/lib/utils";
 import { sendSubmissionNotification } from "@/lib/mailer";
+import { sendProfile, sendInventory, sendNotification } from "@/lib/datatalks";
 
 const VALID_CATEGORIES = ["Press", "Foto", "TV", "Radio", "Webb", "Annat"] as const;
 type Category = typeof VALID_CATEGORIES[number];
@@ -92,6 +93,12 @@ export async function POST(req: NextRequest) {
       }
     } catch (err) {
       console.error("Failed to send submission notification:", err);
+    }
+
+    try {
+      await sendNotification(submission);
+    } catch (err) {
+      console.error("DataTalks sendNotification failed:", err);
     }
 
     return NextResponse.json(submission, { status: 201 });
@@ -190,6 +197,12 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  try {
+    await sendInventory(event);
+  } catch (err) {
+    console.error("DataTalks sendInventory failed:", err);
+  }
+
   // --- Resolve or create Applicant Contact ---
   let applicant = await prisma.contact.findFirst({
     where: {
@@ -212,6 +225,11 @@ export async function POST(req: NextRequest) {
         comments: "[]",
       },
     });
+    try {
+      await sendProfile(applicant);
+    } catch (err) {
+      console.error("DataTalks sendProfile (applicant) failed:", err);
+    }
   }
 
   // --- Resolve or create Accredited Contact ---
@@ -222,6 +240,7 @@ export async function POST(req: NextRequest) {
       lastName: accreditedLastName,
     },
   });
+  const isNewAccredited = !accredited;
   if (!accredited) {
     const all = await prisma.contact.findMany({ select: { contactId: true } });
     const contactId = nextId("CID", all.map((c) => c.contactId));
@@ -236,6 +255,13 @@ export async function POST(req: NextRequest) {
         comments: "[]",
       },
     });
+  }
+  if (isNewAccredited) {
+    try {
+      await sendProfile(accredited);
+    } catch (err) {
+      console.error("DataTalks sendProfile (accredited) failed:", err);
+    }
   }
 
   // --- Create Submission ---
@@ -280,6 +306,12 @@ export async function POST(req: NextRequest) {
     }
   } catch (err) {
     console.error("Failed to send submission notification:", err);
+  }
+
+  try {
+    await sendNotification(submission);
+  } catch (err) {
+    console.error("DataTalks sendNotification failed:", err);
   }
 
   return NextResponse.json(submission, { status: 201 });

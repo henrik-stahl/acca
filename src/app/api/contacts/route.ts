@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { nextId } from "@/lib/utils";
+import { sendProfile } from "@/lib/datatalks";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -83,6 +84,12 @@ export async function POST(req: NextRequest) {
       team: team ?? "[]",
     },
   });
+
+  try {
+    await sendProfile(contact);
+  } catch (err) {
+    console.error("DataTalks sendProfile failed:", err);
+  }
 
   return NextResponse.json(contact, { status: 201 });
 }
