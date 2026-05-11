@@ -137,8 +137,8 @@ export async function sendInventory(event: Event): Promise<void> {
       acca_event_name: event.eventName,
       acca_event_date: dtFormat(event.eventDate),
       acca_event_venue: event.arena ?? "",
-      acca_event_press_seats: String(event.pressSeatsCapacity ?? ""),
-      acca_event_photo_pit: String(event.photoPitCapacity ?? ""),
+      acca_event_press_seats: event.pressSeatsCapacity ?? null,
+      acca_event_photo_pit: event.photoPitCapacity ?? null,
     },
   });
 }
