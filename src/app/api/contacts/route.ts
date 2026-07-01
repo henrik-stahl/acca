@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { nextId } from "@/lib/utils";
+import { findMatchingContact } from "@/lib/contacts";
 import { sendProfile } from "@/lib/datatalks";
 
 export async function GET() {
@@ -50,13 +51,15 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { firstName, lastName, email, company, role, workPhone, cellPhone, team } =
-    body;
+  const { company, role, workPhone, cellPhone, team } = body;
+  // Trim the identity fields on the stored value so stray leading/trailing
+  // whitespace (e.g. "Anna ") never becomes part of the saved record.
+  const firstName = (body.firstName ?? "").trim();
+  const lastName = (body.lastName ?? "").trim();
+  const email = (body.email ?? "").trim();
 
-  // Deduplication: email + firstName + lastName
-  const existing = await prisma.contact.findFirst({
-    where: { email, firstName, lastName },
-  });
+  // Deduplication: normalised email + firstName + lastName (see findMatchingContact).
+  const existing = await findMatchingContact({ email, firstName, lastName });
   if (existing) {
     return NextResponse.json(
       { error: "Contact already exists", existing },

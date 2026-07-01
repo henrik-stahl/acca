@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { nextId } from "@/lib/utils";
+import { findMatchingContact } from "@/lib/contacts";
 import { sendSubmissionNotification } from "@/lib/mailer";
 import { sendProfile, sendInventory, sendNotification } from "@/lib/datatalks";
 
@@ -204,22 +205,23 @@ export async function POST(req: NextRequest) {
   }
 
   // --- Resolve or create Applicant Contact ---
-  let applicant = await prisma.contact.findFirst({
-    where: {
-      email: applicantEmail,
-      firstName: applicantFirstName,
-      lastName: applicantLastName,
-    },
-  });
+  // Trim identity fields so stray whitespace never enters the stored record,
+  // and match duplicates via normalisation (see findMatchingContact).
+  const applicantIdentity = {
+    firstName: (applicantFirstName ?? "").trim(),
+    lastName: (applicantLastName ?? "").trim(),
+    email: (applicantEmail ?? "").trim(),
+  };
+  let applicant = await findMatchingContact(applicantIdentity);
   if (!applicant) {
     const all = await prisma.contact.findMany({ select: { contactId: true } });
     const contactId = nextId("CID", all.map((c) => c.contactId));
     applicant = await prisma.contact.create({
       data: {
         contactId,
-        firstName: applicantFirstName,
-        lastName: applicantLastName,
-        email: applicantEmail,
+        firstName: applicantIdentity.firstName,
+        lastName: applicantIdentity.lastName,
+        email: applicantIdentity.email,
         company: applicantCompany,
         workPhone: applicantPhone,
         comments: "[]",
@@ -233,13 +235,12 @@ export async function POST(req: NextRequest) {
   }
 
   // --- Resolve or create Accredited Contact ---
-  let accredited = await prisma.contact.findFirst({
-    where: {
-      email: accreditedEmail,
-      firstName: accreditedFirstName,
-      lastName: accreditedLastName,
-    },
-  });
+  const accreditedIdentity = {
+    firstName: (accreditedFirstName ?? "").trim(),
+    lastName: (accreditedLastName ?? "").trim(),
+    email: (accreditedEmail ?? "").trim(),
+  };
+  let accredited = await findMatchingContact(accreditedIdentity);
   const isNewAccredited = !accredited;
   if (!accredited) {
     const all = await prisma.contact.findMany({ select: { contactId: true } });
@@ -247,9 +248,9 @@ export async function POST(req: NextRequest) {
     accredited = await prisma.contact.create({
       data: {
         contactId,
-        firstName: accreditedFirstName,
-        lastName: accreditedLastName,
-        email: accreditedEmail,
+        firstName: accreditedIdentity.firstName,
+        lastName: accreditedIdentity.lastName,
+        email: accreditedIdentity.email,
         company: accreditedCompany,
         cellPhone: accreditedPhone,
         comments: "[]",

@@ -32,6 +32,57 @@ export function nextId(prefix: string, existingIds: string[]): string {
   return formatId(prefix, max + 1);
 }
 
+// ─── Contact identity normalisation (duplicate matching) ─────────────────────
+// Builds a comparison key used to decide whether a NEW contact is the same
+// person as an existing one. It only removes differences that can never
+// distinguish two real people:
+//   • leading/trailing whitespace (e.g. "Anna ")
+//   • repeated internal whitespace ("Anna  Maria" -> "Anna Maria")
+//   • letter case
+//   • Unicode encoding differences (NFC) — this does NOT strip accents, it just
+//     makes two identically-spelled names compare equal regardless of how the
+//     accented characters were encoded.
+//   • zero-width / invisible characters
+//
+// Accents are deliberately significant: "Rydén" and "Ryden" are treated as
+// DIFFERENT people, and å/ä/ö are of course preserved. Matching still requires
+// first name, last name AND email to agree, so people who merely share an
+// email are never merged.
+
+/** Normalise a name part for matching (the original value is kept for display). */
+export function normalizeNamePart(input: string): string {
+  return (input ?? "")
+    .normalize("NFC") // canonical encoding — preserves accents, å/ä/ö, etc.
+    .replace(/[​-‍﻿]/g, "") // strip zero-width characters
+    .replace(/\s+/g, " ") // collapse whitespace runs (incl. NBSP, which \s matches)
+    .trim() // drop leading/trailing whitespace
+    .toLowerCase();
+}
+
+/** Normalise an email for matching. */
+export function normalizeEmail(input: string): string {
+  return (input ?? "")
+    .normalize("NFC")
+    .replace(/\s+/g, "") // a valid email never contains whitespace
+    .toLowerCase();
+}
+
+/**
+ * Build the duplicate-matching key for a contact: normalised firstName +
+ * lastName + email, joined with a NUL separator so fields can't run together.
+ */
+export function normalizeContactKey(c: {
+  firstName: string;
+  lastName: string;
+  email: string;
+}): string {
+  return [
+    normalizeNamePart(c.firstName),
+    normalizeNamePart(c.lastName),
+    normalizeEmail(c.email),
+  ].join(" ");
+}
+
 export const CATEGORY_ICONS: Record<string, string> = {
   Press: "✍️",
   Foto: "📸",
