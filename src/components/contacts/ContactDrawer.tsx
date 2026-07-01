@@ -45,7 +45,7 @@ export default function ContactDrawer({ contact, onClose, onUpdate, onDelete }: 
     }
   })();
 
-  const submissionsCount = contact._count?.submissionsAsApplicant ?? 0;
+  const submissionsCount = contact._count?.submissionsAsAccredited ?? 0;
 
   async function handleSave() {
     if (!contact) return;
